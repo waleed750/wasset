@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "784837112300",
+    "firebase_url": "https://wasset-e43fb-default-rtdb.firebaseio.com",
+    "project_id": "wasset-e43fb",
+    "storage_bucket": "wasset-e43fb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:784837112300:android:26d92c8aa61bf68c12d0c9",
+        "android_client_info": {
+          "package_name": "sa.morph.waseet"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDCHPfViXY1QSmwBfh4qYVT_BxWQcN-s14"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:784837112300:android:3d9f1f1c22be1de712d0c9",
+        "android_client_info": {
+          "package_name": "sa.morph.waseet1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDCHPfViXY1QSmwBfh4qYVT_BxWQcN-s14"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
