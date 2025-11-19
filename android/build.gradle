@@ -7,6 +7,25 @@ allprojects {
     }
 }
 
+// Ensure Android library/plugin modules are compiled with a recent compileSdk
+// Some plugins require compileSdk >= 33/34. Force subprojects that apply
+// the Android plugin to use compileSdk 36 to avoid AAR metadata failures.
+subprojects {
+    afterEvaluate { proj ->
+        def androidExt = proj.extensions.findByName("android")
+        if (androidExt != null) {
+            try {
+                androidExt.compileSdk = 36
+            } catch (all) {
+                try {
+                    androidExt.compileSdkVersion = 36
+                } catch (ignored) {
+                }
+            }
+        }
+    }
+}
+
 rootProject.buildDir = '../build'
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
