@@ -20,6 +20,7 @@ class PaymentBody extends StatelessWidget {
     description: 'order #1324',
     metadata: {'size': '250g'},
     applePay: ApplePayConfig(
+      saveCard: false,
       merchantId: 'YOUR_MERCHANT_ID',
       label: 'YOUR_STORE_NAME',
       manual: true,

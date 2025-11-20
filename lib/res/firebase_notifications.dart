@@ -17,38 +17,42 @@ class FirebaseNotifications {
   static final FirebaseNotifications instance = FirebaseNotifications._();
 
   Future<void> init() async {
-    _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-    await _flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestNotificationsPermission();
-    const android = AndroidInitializationSettings('mipmap/ic_launcher');
-    const ios = DarwinInitializationSettings();
-    const initSettings = InitializationSettings(android: android, iOS: ios);
-    await _flutterLocalNotificationsPlugin.initialize(
-      initSettings,
-      // onDidReceiveBackgroundNotificationResponse:(details)=>
-      onDidReceiveNotificationResponse: (details) {
-        if (details.payload == null) return;
-        final payload = json.decode(details.payload!);
-        if (payload is Map<String, dynamic>) {
-          _handleMessageAction(payload);
+    try {
+      _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+      await _flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.requestNotificationsPermission();
+      const android = AndroidInitializationSettings('mipmap/ic_launcher');
+      const ios = DarwinInitializationSettings();
+      const initSettings = InitializationSettings(android: android, iOS: ios);
+      await _flutterLocalNotificationsPlugin.initialize(
+        initSettings,
+        // onDidReceiveBackgroundNotificationResponse:(details)=>
+        onDidReceiveNotificationResponse: (details) {
+          if (details.payload == null) return;
+          final payload = json.decode(details.payload!);
+          if (payload is Map<String, dynamic>) {
+            _handleMessageAction(payload);
+          }
+        },
+      );
+      final permission = await FirebaseMessaging.instance.requestPermission(
+        provisional: true,
+      );
+      log('FirebaseMessaging permission: $permission');
+      final token = await FirebaseMessaging.instance.getTokenOrApnsToken();
+      log('FirebaseMessaging token: $token');
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        log('Got a message whilst in the foreground!');
+        handleNotification(message);
+        if (message.notification != null) {
+          log('Message also contained a notification: ${message.notification}');
         }
-      },
-    );
-    final permission = await FirebaseMessaging.instance.requestPermission(
-      provisional: true,
-    );
-    log('FirebaseMessaging permission: $permission');
-    final token = await FirebaseMessaging.instance.getTokenOrApnsToken();
-    log('FirebaseMessaging token: $token');
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      log('Got a message whilst in the foreground!');
-      handleNotification(message);
-      if (message.notification != null) {
-        log('Message also contained a notification: ${message.notification}');
-      }
-    });
+      });
+    } catch (e) {
+      log('Firebase init error: $e');
+    }
   }
 
   Future<void> _handleMessageAction(Map<String, dynamic> data) async {
