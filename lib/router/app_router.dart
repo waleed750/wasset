@@ -5,6 +5,7 @@ import 'package:waseet/app/view/main_layout.dart';
 import 'package:waseet/features/advertisement/domain/entities/ad_entity.dart';
 import 'package:waseet/features/advertisement/presentation/ad_details/view/ad_details_page.dart';
 import 'package:waseet/features/advertisement/presentation/add_new_ad/add_new_ad.dart';
+import 'package:waseet/features/advertisement/presentation/advertiser_check/advertiser_check_page.dart';
 import 'package:waseet/features/advertisement/presentation/advertisements/view/advertisements_page.dart';
 import 'package:waseet/features/advertisement/presentation/my_ads/view/my_ads_page.dart';
 import 'package:waseet/features/brokers/domain/entities/connection_request_entity.dart';
@@ -85,7 +86,7 @@ class AppRouter {
         name: Screens.addNewAd.name,
         path: Screens.addNewAd.path,
         builder: (context, state) {
-          return const AddNewAdPage();
+          return const AdvertiserCheckPage();
         },
       ),
       GoRoute(

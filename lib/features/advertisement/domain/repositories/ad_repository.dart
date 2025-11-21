@@ -47,6 +47,9 @@ abstract class AdRepository {
 
   Future<Resource<AdEntity?>> getAdById(int id);
 
+  Future<Resource<AdEntity?>> getAdByAdvertiserAndLicense(
+      String advertiserId, String adLicenseNumber,);
+
   Future<Resource<AdEntity?>> createAd(AddAdRequest ad);
 
   Future<Resource<AdEntity?>> updateAd(AddAdRequest ad);

@@ -15,8 +15,10 @@ class ApiService {
     if (!kReleaseMode) {
       _dio.interceptors.add(
         PrettyDioLogger(
-          requestBody: true,
           requestHeader: true,
+          requestBody: true,
+          responseBody: false,
+          maxWidth: 40,
         ),
       );
     }

@@ -48,10 +48,12 @@ class AdModel {
             ),
       typeOfAdvertisement: json['type_of_advertisement'] as String?,
       typeOfAdvertisementExtra: json['type_of_advertisement_extra'] as String?,
-      category: json['category'] == null
-          ? null
-          : CategoryModel.fromMap(json['category'] as Map<String, dynamic>),
-      city: CitiesModel.fromJson(json['city'] as Map<String, dynamic>),
+    category: json['category'] == null
+      ? null
+      : CategoryModel.fromMap(json['category'] as Map<String, dynamic>),
+    city: json['city'] == null
+      ? null
+      : CitiesModel.fromJson(json['city'] as Map<String, dynamic>),
       neighborhood: json['neighborhood'] == null
           ? null
           : NeighborhoodModel.fromJson(
@@ -86,10 +88,17 @@ class AdModel {
       advertiserName: json['advertiser_name'] as String?,
       advertisingLicenseNumber:
           int.tryParse(json['advertising_license_number'].toString()),
-      images: (json['attechments'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
-          [],
+      images: (json['attechments'] as List<dynamic>?)?.map((e) {
+            if (e == null) return null;
+            if (e is String) return e;
+            if (e is Map<String, dynamic>) {
+              // prefer `url` field if present
+              final url = e['url'] ?? e['file'] ?? e['path'];
+              if (url is String) return url;
+              return url?.toString();
+            }
+            return e.toString();
+          }).whereType<String>().toList() ?? [],
     );
   }
   int? id;
@@ -125,7 +134,7 @@ class AdModel {
   AdEntity toEntity() {
     return AdEntity(
       id: id,
-      createdBy: WassetUser.fromModel(createdBy!),
+  createdBy: createdBy != null ? WassetUser.fromModel(createdBy!) : null,
       typeOfAdvertisement: typeOfAdvertisement,
       typeOfAdvertisementExtra: typeOfAdvertisementExtra,
       category: category?.toEntity(),

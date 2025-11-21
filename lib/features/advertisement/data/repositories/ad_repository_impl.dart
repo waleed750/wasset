@@ -32,6 +32,15 @@ class AdRepositoryImpl extends AdRepository {
   }
 
   @override
+  Future<Resource<AdEntity?>> getAdByAdvertiserAndLicense(
+      String advertiserId, String adLicenseNumber,) async {
+    return _adDatasource.getAdByAdvertiserAndLicense(
+      advertiserId,
+      adLicenseNumber,
+    );
+  }
+
+  @override
   Future<Resource<List<AdEntity>?>> getAds(
     GetAdsParam param, {
     int page = 1,

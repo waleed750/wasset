@@ -116,6 +116,28 @@ class AdDatasource {
     }
   }
 
+  /// Fetch advertisement by advertiserId and adLicenseNumber (used by new pre-wizard step)
+  Future<Resource<AdEntity?>> getAdByAdvertiserAndLicense(
+      String advertiserId, String adLicenseNumber,) async {
+    try {
+      final response = await _apiServices.post<Map<String, dynamic>>(
+        '/advertisements',
+        data: {
+          'advertiserId': advertiserId,
+          'adLicenseNumber': adLicenseNumber,
+        },
+      );
+
+      final ad = AdResponse.fromMap(response!);
+      if (ad.data != null && ad.data!.isNotEmpty) {
+        return Resource.success(ad.data!.first.toEntity());
+      }
+      return Resource.error(ad.message ?? 'error', null, ad.errors);
+    } catch (e) {
+      return Resource.error(e.toString());
+    }
+  }
+
   Future<Resource<PostEntity?>> createPost(AddNewPostRequest request) async {
     try {
       final response = await _apiServices.post<Map<String, dynamic>>(
@@ -182,10 +204,9 @@ class AdDatasource {
 
   Future<Resource<PostEntity?>> deletePost(int id) async {
     try {
-      final response = await _apiServices.delete<Map<String, dynamic>>(
+      await _apiServices.delete<Map<String, dynamic>>(
         '/posts/$id',
       );
-      final post = PostsResponse.fromMap(response!);
       return Resource.success(null);
     } catch (e) {
       return Resource.error(e.toString());
