@@ -1,6 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class ProfileTextField extends StatefulWidget {
   const ProfileTextField({
@@ -24,7 +25,7 @@ class ProfileTextField extends StatefulWidget {
   final TextInputType? keyboardType;
   final int maxLines;
   final TextEditingController? controller;
-  final bool enabled ;
+  final bool enabled;
 
   @override
   State<ProfileTextField> createState() => _ProfileTextFieldState();
@@ -75,6 +76,9 @@ class _ProfileTextFieldState extends State<ProfileTextField> {
           focusNode: widget.focusNode,
           controller: _controller,
           maxLines: widget.maxLines,
+          inputFormatters: [
+            PhoneMaskingDescriptionFormatter(),
+          ],
           decoration: InputDecoration(
             hintText: widget.hintText,
             hintStyle: const TextStyle(
@@ -91,6 +95,54 @@ class _ProfileTextFieldState extends State<ProfileTextField> {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Formatter that detects phone-like numbers in Arabic/English text
+/// and masks them completely with #
+/// - Supports Saudi patterns: 05xxxxxxxx / +9665xxxxxxxx
+/// - Supports any long digit sequence (>=7)
+/// - Works with Western digits (0-9) and Arabic-Indic digits (٠١٢٣٤٥٦٧٨٩)
+class PhoneMaskingDescriptionFormatter extends TextInputFormatter {
+  /// اختياري: نحتفظ بآخر رقم حقيقي تم اكتشافه (بدون ماسك)
+  String? lastDetectedPhone;
+
+  // Digit class: 0-9 and Arabic-Indic ٠-٩
+  static const String _digitClass = r'0-9\u0660-\u0669';
+
+  // Regex:
+  // - +9665 + 8 digits
+  // - 05 + 8 digits
+  // - any sequence of 7+ digits (عربي أو إنجليزي)
+  final RegExp phoneRegex = RegExp(
+    r'(\+966[0-9\u0660-\u0669]{8}|0[5\u0665][0-9\u0660-\u0669]{8}|[0-9\u0660-\u0669]{7,})',
+  );
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final text = newValue.text;
+
+    final matches = phoneRegex.allMatches(text);
+    if (matches.isEmpty) {
+      // مفيش أرقام شبه تليفون → نسيب النص زي ما هو
+      return newValue;
+    }
+
+    // نستبدل كل رقم تليفون بسلسلة # بنفس الطول
+    String masked = text.replaceAllMapped(phoneRegex, (match) {
+      final phone = match.group(0)!;
+      lastDetectedPhone = phone; // حفظ آخر رقم لو حابب تستخدمه
+
+      return "#" * phone.length;
+    });
+
+    return TextEditingValue(
+      text: masked,
+      selection: TextSelection.collapsed(offset: masked.length),
     );
   }
 }

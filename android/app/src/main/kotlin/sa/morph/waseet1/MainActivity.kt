@@ -1,4 +1,4 @@
-package sa.morph.waseet
+package sa.morph.waseet1
 
 import io.flutter.embedding.android.FlutterActivity
 

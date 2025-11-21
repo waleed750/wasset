@@ -34,7 +34,7 @@ if (keystorePropertiesFile.exists()) {
 
 
 android {
-    namespace 'sa.morph.waseet'
+    namespace 'sa.morph.waseet1'
     compileSdk = 36
     
 
@@ -66,7 +66,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId "sa.morph.waseet"
+        applicationId "sa.morph.waseet1"
         minSdkVersion flutter.minSdkVersion
         targetSdk = 36
         multiDexEnabled true
