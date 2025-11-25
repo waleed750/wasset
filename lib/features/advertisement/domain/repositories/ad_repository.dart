@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:waseet/features/advertisement/domain/entities/ad_entity.dart';
+import 'package:waseet/features/advertisement/domain/entities/verify_license_entity.dart';
 import 'package:waseet/features/advertisement/domain/entities/post_entity.dart';
 import 'package:waseet/features/advertisement/domain/entities/request/add_ad_request.dart';
 import 'package:waseet/features/advertisement/domain/entities/request/add_new_post_request.dart';
@@ -50,7 +52,17 @@ abstract class AdRepository {
   Future<Resource<AdEntity?>> getAdByAdvertiserAndLicense(
       String advertiserId, String adLicenseNumber,);
 
+  Future<Resource<VerifyLicenseEntity?>> verifyLicense(
+      String advertiserId, String adLicenseNumber,);
+
   Future<Resource<AdEntity?>> createAd(AddAdRequest ad);
+
+  Future<Resource<AdEntity?>> createAdWithVerification(
+    String advertiserId,
+    String adLicenseNumber,
+    String extraInfo,
+    List<File> files,
+  );
 
   Future<Resource<AdEntity?>> updateAd(AddAdRequest ad);
 

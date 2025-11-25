@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:waseet/features/advertisement/data/datasources/ad_datasource.dart';
 import 'package:waseet/features/advertisement/domain/entities/ad_entity.dart';
+import 'package:waseet/features/advertisement/domain/entities/verify_license_entity.dart';
 import 'package:waseet/features/advertisement/domain/entities/post_entity.dart';
 import 'package:waseet/features/advertisement/domain/entities/request/add_ad_request.dart';
 import 'package:waseet/features/advertisement/domain/entities/request/add_new_post_request.dart';
@@ -21,6 +23,21 @@ class AdRepositoryImpl extends AdRepository {
   }
 
   @override
+  Future<Resource<AdEntity?>> createAdWithVerification(
+    String advertiserId,
+    String adLicenseNumber,
+    String extraInfo,
+    List<File> files,
+  ) {
+    return _adDatasource.createAdWithVerification(
+      advertiserId,
+      adLicenseNumber,
+      extraInfo,
+      files,
+    );
+  }
+
+  @override
   Future<Resource<AdEntity?>> deleteAd(int id) {
     // TODO: implement deleteAd
     throw UnimplementedError();
@@ -38,6 +55,12 @@ class AdRepositoryImpl extends AdRepository {
       advertiserId,
       adLicenseNumber,
     );
+  }
+
+  @override
+  Future<Resource<VerifyLicenseEntity?>> verifyLicense(
+      String advertiserId, String adLicenseNumber,) async {
+    return _adDatasource.verifyLicense(advertiserId, adLicenseNumber);
   }
 
   @override

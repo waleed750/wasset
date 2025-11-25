@@ -1,0 +1,176 @@
+import 'package:waseet/features/advertisement/domain/entities/verify_license_entity.dart';
+
+class VerifyLocationModel extends VerifyLocationEntity {
+  VerifyLocationModel({
+    super.region,
+    super.regionCode,
+    super.city,
+    super.cityCode,
+    super.district,
+    super.districtCode,
+    super.street,
+    super.postalCode,
+    super.buildingNumber,
+    super.additionalNumber,
+    super.longitude,
+    super.latitude,
+    super.districtId,
+    super.cityId,
+    super.regionId,
+  });
+
+  factory VerifyLocationModel.fromMap(Map<String, dynamic>? map) {
+    if (map == null) return VerifyLocationModel();
+    return VerifyLocationModel(
+      region: map['region'] as String?,
+      regionCode: map['regionCode'] as String?,
+      city: map['city'] as String?,
+      cityCode: map['cityCode'] as String?,
+      district: map['district'] as String?,
+      districtCode: map['districtCode'] as String?,
+      street: map['street'] as String?,
+      postalCode: map['postalCode'] as String?,
+      buildingNumber: map['buildingNumber'] as String?,
+      additionalNumber: map['additionalNumber'] as String?,
+      longitude: map['longitude'] as String?,
+      latitude: map['latitude'] as String?,
+      districtId: map['districtId'] as String?,
+      cityId: map['cityId'] as String?,
+      regionId: map['regionId'] as String?,
+    );
+  }
+}
+
+class VerifyBordersModel extends VerifyBordersEntity {
+  VerifyBordersModel({
+    super.northLimitName,
+    super.northLimitDescription,
+    super.northLimitLengthChar,
+    super.eastLimitName,
+    super.eastLimitDescription,
+    super.eastLimitLengthChar,
+    super.westLimitName,
+    super.westLimitDescription,
+    super.westLimitLengthChar,
+    super.southLimitName,
+    super.southLimitDescription,
+    super.southLimitLengthChar,
+  });
+
+  factory VerifyBordersModel.fromMap(Map<String, dynamic>? map) {
+    if (map == null) return VerifyBordersModel();
+    return VerifyBordersModel(
+      northLimitName: map['northLimitName'] as String?,
+      northLimitDescription: map['northLimitDescription'] as String?,
+      northLimitLengthChar: map['northLimitLengthChar'] as String?,
+      eastLimitName: map['eastLimitName'] as String?,
+      eastLimitDescription: map['eastLimitDescription'] as String?,
+      eastLimitLengthChar: map['eastLimitLengthChar'] as String?,
+      westLimitName: map['westLimitName'] as String?,
+      westLimitDescription: map['westLimitDescription'] as String?,
+      westLimitLengthChar: map['westLimitLengthChar'] as String?,
+      southLimitName: map['southLimitName'] as String?,
+      southLimitDescription: map['southLimitDescription'] as String?,
+      southLimitLengthChar: map['southLimitLengthChar'] as String?,
+    );
+  }
+}
+
+class VerifyLicenseModel extends VerifyLicenseEntity {
+  VerifyLicenseModel({
+    super.advertiserId,
+    super.adLicenseNumber,
+    super.deedNumber,
+    super.advertiserName,
+    super.responsibleEmployeeName,
+    super.responsibleEmployeePhoneNumber,
+    super.phoneNumber,
+    super.brokerageAndMarketingLicenseNumber,
+    super.isConstrained,
+    super.isPawned,
+    super.isHalted,
+    super.isTestment,
+    super.rerConstraints,
+    super.streetWidth,
+    super.propertyArea,
+    super.propertyPrice,
+    super.landTotalPrice,
+    super.landTotalAnnualRent,
+    super.numberOfRooms,
+    super.propertyType,
+    super.propertyAge,
+    super.advertisementType,
+    super.location,
+    super.propertyFace,
+    super.planNumber,
+    super.landNumber,
+    super.obligationsOnTheProperty,
+    super.guaranteesAndTheirDuration,
+    super.complianceWithTheSaudiBuildingCode,
+    super.channels,
+    super.propertyUsages,
+    super.mainLandUseTypeName,
+    super.redZoneTypeName,
+    super.propertyUtilities,
+    super.creationDate,
+    super.endDate,
+    super.adLicenseUrl,
+    super.adSource,
+    super.titleDeedTypeName,
+    super.locationDescriptionOnMOJDeed,
+    super.notes,
+    super.borders,
+    super.rerBorders,
+    super.ownershipTransferFeeType,
+  });
+
+  factory VerifyLicenseModel.fromMap(Map<String, dynamic>? map) {
+    if (map == null) return VerifyLicenseModel();
+    return VerifyLicenseModel(
+      advertiserId: map['advertiserId'] as String?,
+      adLicenseNumber: map['adLicenseNumber'] as String?,
+      deedNumber: map['deedNumber'] as String?,
+      advertiserName: map['advertiserName'] as String?,
+      responsibleEmployeeName: map['responsibleEmployeeName'] as String?,
+      responsibleEmployeePhoneNumber: map['responsibleEmployeePhoneNumber'] as String?,
+      phoneNumber: map['phoneNumber'] as String?,
+      brokerageAndMarketingLicenseNumber: map['brokerageAndMarketingLicenseNumber'] as String?,
+      isConstrained: map['isConstrained'] as bool?,
+      isPawned: map['isPawned'] as bool?,
+      isHalted: map['isHalted'] as bool?,
+      isTestment: map['isTestment'] as bool?,
+      rerConstraints: map['rerConstraints'],
+      streetWidth: map['streetWidth'] as num?,
+      propertyArea: map['propertyArea'] as num?,
+      propertyPrice: map['propertyPrice'] as num?,
+      landTotalPrice: map['landTotalPrice'] as num?,
+      landTotalAnnualRent: map['landTotalAnnualRent'] as num?,
+      numberOfRooms: map['numberOfRooms'] as int?,
+      propertyType: map['propertyType'] as String?,
+      propertyAge: map['propertyAge'] as String?,
+      advertisementType: map['advertisementType'] as String?,
+      location: VerifyLocationModel.fromMap(map['location'] as Map<String, dynamic>?),
+      propertyFace: map['propertyFace'] as String?,
+      planNumber: map['planNumber'] as String?,
+      landNumber: map['landNumber'] as String?,
+      obligationsOnTheProperty: map['obligationsOnTheProperty'] as String?,
+      guaranteesAndTheirDuration: map['guaranteesAndTheirDuration'] as String?,
+      complianceWithTheSaudiBuildingCode: map['complianceWithTheSaudiBuildingCode'] as String?,
+      channels: (map['channels'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
+      propertyUsages: map['propertyUsages'] as List<dynamic>?,
+      mainLandUseTypeName: map['mainLandUseTypeName'] as String?,
+      redZoneTypeName: map['redZoneTypeName'] as String?,
+      propertyUtilities: (map['propertyUtilities'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
+      creationDate: map['creationDate'] as String?,
+      endDate: map['endDate'] as String?,
+      adLicenseUrl: map['adLicenseUrl'] as String?,
+      adSource: map['adSource'] as String?,
+      titleDeedTypeName: map['titleDeedTypeName'] as String?,
+      locationDescriptionOnMOJDeed: map['locationDescriptionOnMOJDeed'] as String?,
+      notes: map['notes'] as String?,
+      borders: VerifyBordersModel.fromMap(map['borders'] as Map<String, dynamic>?),
+      rerBorders: map['rerBorders'] as List<dynamic>?,
+      ownershipTransferFeeType: map['ownershipTransferFeeType'] as String?,
+    );
+  }
+}

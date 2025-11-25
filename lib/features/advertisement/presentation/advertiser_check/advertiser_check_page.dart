@@ -3,8 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:waseet/common_widgets/wasset_app_bar.dart';
 import 'package:waseet/common_widgets/wasset_text_field.dart';
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 
 import 'package:waseet/features/advertisement/domain/entities/ad_entity.dart';
+import 'package:waseet/features/advertisement/domain/entities/verify_license_entity.dart';
 import 'package:waseet/features/advertisement/domain/entities/request/add_ad_request.dart';
 import 'package:waseet/features/advertisement/domain/repositories/ad_repository.dart';
 import 'package:waseet/res/resource.dart';
@@ -36,32 +38,47 @@ class _AdvertiserCheckPageState extends State<AdvertiserCheckPage> {
     final advertiserId = _advertiserController.text.trim();
     final license = _licenseController.text.trim();
     if (advertiserId.isEmpty || license.isEmpty) {
-      HelperMethod.showSnackBar(context, 'الحقول مطلوبة', type: SnackBarType.error);
+      HelperMethod.showSnackBar(
+        context,
+        'الحقول مطلوبة',
+        type: SnackBarType.error,
+      );
       return;
     }
-    if (!RegExp(r'^\d{6,}$').hasMatch(advertiserId) || !RegExp(r'^\d{6,}$').hasMatch(license)) {
+    if (!RegExp(r'^\d{6,}$').hasMatch(advertiserId) ||
+        !RegExp(r'^\d{6,}$').hasMatch(license)) {
       // be flexible but prefer numeric IDs
       // allow proceed but show warning
     }
     setState(() => _submitting = true);
     final repo = context.read<AdRepository>();
-    final res = await repo.getAdByAdvertiserAndLicense(advertiserId, license);
-    setState(() => _submitting = false);
-    if (res is ResourceSuccess<AdEntity?>) {
-      final ad = res.data;
-      if (ad != null) {
-        // navigate to preview
-        Navigator.of(context).push(MaterialPageRoute<Widget>(
-          builder: (_) => AdvertisementPreviewPage(ad: ad),
-        ),);
+    // Use verification endpoint only (returns the full dataset)
+    final verifyRes = await repo.verifyLicense(advertiserId, license);
+    if (verifyRes is ResourceSuccess<VerifyLicenseEntity?>) {
+      final ver = verifyRes.data;
+      setState(() => _submitting = false);
+      if (ver != null) {
+        Navigator.of(context).push(
+          MaterialPageRoute<Widget>(
+            builder: (_) => AdvertisementPreviewPage(verify: ver),
+          ),
+        );
         return;
       }
-      HelperMethod.showSnackBar(context, 'لم يتم العثور على إعلان', type: SnackBarType.error);
+      HelperMethod.showSnackBar(
+        context,
+        'لم يتم العثور على بيانات الترخيص',
+        type: SnackBarType.error,
+      );
       return;
     }
-
-  final message = (res as ResourceError).message;
-    HelperMethod.showSnackBar(context, message ?? 'حدث خطأ', type: SnackBarType.error);
+    setState(() => _submitting = false);
+    final message = (verifyRes as ResourceError).message;
+    HelperMethod.showSnackBar(
+      context,
+      message ?? 'حدث خطأ',
+      type: SnackBarType.error,
+    );
   }
 
   // validation is done inline before calling API
@@ -107,7 +124,12 @@ class _AdvertiserCheckPageState extends State<AdvertiserCheckPage> {
                 onPressed: _submitting ? null : _search,
                 child: _submitting
                     ? const CircularProgressIndicator.adaptive()
-                    : const Text('التالي'),
+                    : const Text(
+                        'التالي',
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                      ),
               ),
             ),
           ],
@@ -117,100 +139,348 @@ class _AdvertiserCheckPageState extends State<AdvertiserCheckPage> {
   }
 }
 
-class AdvertisementPreviewPage extends StatelessWidget {
-  const AdvertisementPreviewPage({super.key, required this.ad});
+class AdvertisementPreviewPage extends StatefulWidget {
+  const AdvertisementPreviewPage({super.key, this.ad, this.verify});
 
-  final AdEntity ad;
+  final AdEntity? ad;
+  final VerifyLicenseEntity? verify;
+
+  @override
+  State<AdvertisementPreviewPage> createState() =>
+      _AdvertisementPreviewPageState();
+}
+
+class _AdvertisementPreviewPageState extends State<AdvertisementPreviewPage> {
+  final _extraController = TextEditingController();
+  final List<File> _attachments = [];
+  bool _submitting = false;
+
+  @override
+  void dispose() {
+    _extraController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final verify = widget.verify;
+    final title = verify != null ? 'معاينة بيانات الترخيص' : 'معاينة الإعلان';
     return Scaffold(
-      appBar: const WassetAppBar(title: 'معاينة الإعلان'),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('المدينة: \\${ad.city?.name ?? ''}'),
-            const SizedBox(height: 8),
-            Text('الحي: \\${ad.neighborhood?.name ?? ''}'),
-            const SizedBox(height: 8),
-            Text('نوع الإعلان: \\${ad.typeOfAdvertisement ?? ''}'),
-            const SizedBox(height: 8),
-            Text('نوع العقار: \\${ad.typeOfAdvertisementExtra ?? ''}'),
-            const SizedBox(height: 8),
-            Text('المساحة: \\${ad.landSpace ?? ''}'),
-            const SizedBox(height: 8),
-            Text('السعر: \\${ad.price ?? ''}'),
-            const SizedBox(height: 8),
-            Text('طريقة الدفع: \\${ad.paymentMethod ?? ''}'),
-            const SizedBox(height: 8),
-            Text('طريقة التواصل: \\${ad.communicationMethod ?? ''}'),
-            const SizedBox(height: 12),
-            if ((ad.images ?? []).isNotEmpty) ...[
-              SizedBox(
-                height: 120,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: ad.images?.length ?? 0,
-                  itemBuilder: (_, i) {
-                    final url = ad.images![i];
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: Image.network(url, width: 120, height: 120, fit: BoxFit.cover),
-                    );
-                  },
+      appBar: WassetAppBar(title: title),
+      body: Directionality(
+        textDirection: TextDirection.rtl,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _sectionCard('بيانات الإعلان', [
+                  _verticalKV(
+                      'رقم رخصة الإعلان', verify?.adLicenseNumber ?? '-',),
+                  _verticalKV('نوع الإعلان', verify?.advertisementType ?? '-'),
+                  _verticalKV('نوع الصك', verify?.titleDeedTypeName ?? '-'),
+                  _verticalKV('اسم المعلن', verify?.advertiserName ?? '-'),
+                  _verticalKV('معرف المعلن', verify?.advertiserId ?? '-'),
+                  _verticalKV('رقم الصك', verify?.deedNumber ?? '-'),
+                  _verticalKV('مصدر الإعلان', verify?.adSource ?? '-'),
+                ]),
+                _sectionCard('الموقع', [
+                  _verticalKV('المنطقة', verify?.location?.region ?? '-'),
+                  _verticalKV('المدينة', verify?.location?.city ?? '-'),
+                  _verticalKV('الحي', verify?.location?.district ?? '-'),
+                  _verticalKV('الشارع', verify?.location?.street ?? '-'),
+                  _verticalKV(
+                      'رقم المبنى', verify?.location?.buildingNumber ?? '-',),
+                  _verticalKV('وصف الموقع في الصك',
+                      verify?.locationDescriptionOnMOJDeed ?? '-',),
+                ]),
+                _sectionCard('الحدود', [
+                  _verticalKV('شمالاً', verify?.borders?.northLimitName ?? '-'),
+                  _verticalKV('وصف الشمال',
+                      verify?.borders?.northLimitDescription ?? '-',),
+                  _verticalKV('شرقاً', verify?.borders?.eastLimitName ?? '-'),
+                  _verticalKV('وصف الشرق',
+                      verify?.borders?.eastLimitDescription ?? '-',),
+                  _verticalKV('غرباً', verify?.borders?.westLimitName ?? '-'),
+                  _verticalKV('وصف الغرب',
+                      verify?.borders?.westLimitDescription ?? '-',),
+                  _verticalKV('جنوباً', verify?.borders?.southLimitName ?? '-'),
+                  _verticalKV('وصف الجنوب',
+                      verify?.borders?.southLimitDescription ?? '-',),
+                ]),
+                _sectionCard('المساحة والسعر', [
+                  _verticalKV(
+                      'المساحة (م²)', formatNumber(verify?.propertyArea),),
+                  _verticalKV(
+                      'سعر العقار', formatNumber(verify?.propertyPrice),),
+                  _verticalKV(
+                      'إجمالي سعر الأرض', formatNumber(verify?.landTotalPrice),),
+                  _verticalKV('الإيجار السنوي',
+                      formatNumber(verify?.landTotalAnnualRent),),
+                  _verticalKV(
+                      'عدد الغرف', verify?.numberOfRooms?.toString() ?? '-',),
+                ]),
+                _sectionCard('الخصائص والاستخدام', [
+                  _verticalKV('نوع العقار', verify?.propertyType ?? '-'),
+                  _verticalKV('عمر العقار', verify?.propertyAge ?? '-'),
+                  _verticalKV('واجهة العقار', verify?.propertyFace ?? '-'),
+                  _verticalKV(
+                      'الاستخدام الرئيسي', verify?.mainLandUseTypeName ?? '-',),
+                  _verticalKV('منطقة حمراء', verify?.redZoneTypeName ?? '-'),
+                  _verticalKV(
+                      'المرافق', listToString(verify?.propertyUtilities),),
+                ]),
+                _sectionCard('الالتزامات والحالة', [
+                  _verticalKV('التزامات على العقار',
+                      verify?.obligationsOnTheProperty ?? '-',),
+                  _verticalKV('الضمانات ومدتها',
+                      verify?.guaranteesAndTheirDuration ?? '-',),
+                  _verticalKV('مطابقة الكود السعودي للبناء',
+                      verify?.complianceWithTheSaudiBuildingCode ?? '-',),
+                  _verticalKV('مقيد', boolToYesNo(verify?.isConstrained)),
+                  _verticalKV('مرهون', boolToYesNo(verify?.isPawned)),
+                  _verticalKV('موقف', boolToYesNo(verify?.isHalted)),
+                ]),
+                _sectionCard('قنوات وتفاصيل', [
+                  _verticalKV('القنوات', listToString(verify?.channels)),
+                  _verticalKV(
+                      'أنواع الاستخدام', listToString(verify?.propertyUsages),),
+                  _verticalKV('تاريخ الإنشاء', verify?.creationDate ?? '-'),
+                  _verticalKV('تاريخ الانتهاء', verify?.endDate ?? '-'),
+                ]),
+                _sectionCard('جهة الاتصال', [
+                  _verticalKV(
+                      'اسم المسؤول', verify?.responsibleEmployeeName ?? '-',),
+                  _verticalKV('هاتف المسؤول',
+                      verify?.responsibleEmployeePhoneNumber ?? '-',),
+                  _verticalKV('رقم الجوال', verify?.phoneNumber ?? '-'),
+                ]),
+                _sectionCard('ملاحظات ومرفقات التراخيص', [
+                  _verticalKV('ملاحظات التحقق', verify?.notes ?? '-'),
+                  _verticalKV('رابط رخصة الإعلان', verify?.adLicenseUrl ?? '-'),
+                  _verticalKV('نوع رسم نقل الملكية',
+                      verify?.ownershipTransferFeeType ?? '-',),
+                ]),
+                _sectionCard('المرفقات', [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'إضافة مرفقات',
+                          style: TextStyle(color: AppColors.secondaryTextColor),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            ElevatedButton(
+                              onPressed: () async {
+                                final result = await FilePicker.platform
+                                    .pickFiles(allowMultiple: true);
+                                if (result == null) return;
+                                for (final f in result.files) {
+                                  if (f.path != null) {
+                                    setState(
+                                      () => _attachments.add(File(f.path!)),
+                                    );
+                                  }
+                                }
+                              },
+                              child: const Text('اختر ملفات'),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                _attachments.isEmpty
+                                    ? 'لا توجد ملفات'
+                                    : '${_attachments.length} ملف',
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        ..._attachmentsPreview(),
+                      ],
+                    ),
+                  ),
+                ]),
+                _sectionCard('معلومات إضافية', [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: TextField(
+                      controller: _extraController,
+                      keyboardType: TextInputType.text,
+                      decoration: InputDecoration(
+                        hintText: 'اكتب معلومات إضافية أو طريقة تواصل',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      maxLines: 3,
+                    ),
+                  ),
+                ]),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryColor,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    onPressed: _submitting
+                        ? null
+                        : () async {
+                            setState(() => _submitting = true);
+                            final repo = context.read<AdRepository>();
+                            final verify = widget.verify;
+                            final advertiserId = verify?.advertiserId ?? '';
+                            final adLicenseNumber =
+                                verify?.adLicenseNumber ?? '';
+                            final extra = _extraController.text.trim();
+                            final res = await repo.createAdWithVerification(
+                              advertiserId,
+                              adLicenseNumber,
+                              extra,
+                              _attachments,
+                            );
+                            setState(() => _submitting = false);
+                            if (res is ResourceSuccess<AdEntity?>) {
+                              HelperMethod.showSnackBar(
+                                context,
+                                'تم النشر بنجاح',
+                                type: SnackBarType.success,
+                              );
+                              Navigator.of(context)
+                                  .popUntil((route) => route.isFirst);
+                            } else {
+                              final msg = (res as ResourceError).message;
+                              HelperMethod.showSnackBar(
+                                context,
+                                msg ?? 'خطأ في النشر',
+                                type: SnackBarType.error,
+                              );
+                            }
+                          },
+                    child: _submitting
+                        ? const CircularProgressIndicator.adaptive()
+                        : const Text(
+                            'تأكيد ونشر الإعلان',
+                            style: TextStyle(
+                              color: Colors.white,
+                            ),
+                          ),
+                  ),
                 ),
-              ),
-            ],
-            const Spacer(),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryColor,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-                onPressed: () async {
-          // reuse existing create ad usecase / repo method
-          // Build AddAdRequest from ad entity where possible and call createAd
-          final repo = context.read<AdRepository>();
-          // The AddAdRequest requires many fields; use defaults where missing.
-          final request = AddAdRequest.empty.copyWith(
-          advertiserName: ad.advertiserName ?? '',
-          advertisingLicenseNumber:
-            ad.advertisingLicenseNumber ?? 0,
-          cityId: ad.city?.id ?? AddAdRequest.empty.cityId,
-          neighborhoodId:
-            ad.neighborhood?.id ?? AddAdRequest.empty.neighborhoodId,
-          price: ad.price ?? AddAdRequest.empty.price,
-          paymentMethod: ad.paymentMethod ?? AddAdRequest.empty.paymentMethod,
-          communicationMethod:
-            ad.communicationMethod ?? AddAdRequest.empty.communicationMethod,
-          typeOfAdvertisement:
-            ad.typeOfAdvertisement ?? AddAdRequest.empty.typeOfAdvertisement,
-          typeOfAdvertisementExtra:
-            ad.typeOfAdvertisementExtra ?? AddAdRequest.empty.typeOfAdvertisementExtra,
-          landSpace: ad.landSpace ?? AddAdRequest.empty.landSpace,
-          images: <File>[],
-          );
-
-                  HelperMethod.showSnackBar(context, 'جاري النشر...');
-                  final res = await repo.createAd(request);
-                  if (res is ResourceSuccess) {
-                    HelperMethod.showSnackBar(context, 'تم النشر بنجاح', type: SnackBarType.success);
-                    Navigator.of(context).popUntil((route) => route.isFirst);
-                  } else {
-                    final msg = (res as ResourceError).message;
-                    HelperMethod.showSnackBar(context, msg ?? 'خطأ في النشر', type: SnackBarType.error);
-                  }
-                },
-                child: const Text('تأكيد ونشر الإعلان'),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
+
+  String formatNumber(num? n) {
+    if (n == null) return '-';
+    // represent without trailing .0 when integer
+    final s = (n % 1 == 0) ? n.toInt().toString() : n.toString();
+    return _withThousandsSeparator(s);
+  }
+
+  String _withThousandsSeparator(String s) {
+    // handle decimal part if present
+    if (s.contains('.')) {
+      final parts = s.split('.');
+      return '${_withThousandsSeparator(parts[0])}.${parts[1]}';
+    }
+    final buf = StringBuffer();
+    var count = 0;
+    for (var i = s.length - 1; i >= 0; i--) {
+      buf.write(s[i]);
+      count++;
+      if (count % 3 == 0 && i != 0) buf.write(',');
+    }
+    return buf.toString().split('').reversed.join();
+  }
+
+  String listToString(List<dynamic>? l) {
+    if (l == null || l.isEmpty) return '-';
+    final items =
+        l.map((e) => e?.toString() ?? '').where((e) => e.isNotEmpty).toList();
+    return items.isEmpty ? '-' : items.join('، ');
+  }
+
+  String boolToYesNo(bool? v) {
+    if (v == null) return '-';
+    return v ? 'نعم' : 'لا';
+  }
+
+  List<Widget> _attachmentsPreview() {
+    return _attachments.map((f) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 6),
+        child: Row(
+          children: [
+            Expanded(child: Text(f.path.split(Platform.pathSeparator).last)),
+            GestureDetector(
+              onTap: () => setState(() => _attachments.remove(f)),
+              child: const Icon(Icons.delete, color: AppColors.primaryColor),
+            ),
+          ],
+        ),
+      );
+    }).toList();
+  }
+}
+
+// ... used helpers are below
+
+Widget _verticalKV(String label, String? value) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 12),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+              fontSize: 12, color: AppColors.secondaryTextColor,),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          value ?? '-',
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _sectionCard(String title, List<Widget> children) {
+  return Container(
+    width: double.infinity,
+    margin: const EdgeInsets.only(bottom: 12),
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(8),
+      boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6)],
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            color: AppColors.primaryColor,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        ...children,
+      ],
+    ),
+  );
 }

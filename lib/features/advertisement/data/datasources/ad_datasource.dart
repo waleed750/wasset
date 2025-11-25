@@ -1,10 +1,13 @@
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:dio/dio.dart' as dio;
 import 'package:waseet/features/advertisement/data/models/ad_response.dart';
+import 'package:waseet/features/advertisement/data/models/verify_license_response.dart';
 import 'package:waseet/features/advertisement/data/models/post_response.dart';
 import 'package:waseet/features/advertisement/domain/entities/ad_entity.dart';
 import 'package:waseet/features/advertisement/domain/entities/post_entity.dart';
+import 'package:waseet/features/advertisement/domain/entities/verify_license_entity.dart';
 import 'package:waseet/features/advertisement/domain/entities/request/add_ad_request.dart';
 import 'package:waseet/features/advertisement/domain/entities/request/add_new_post_request.dart';
 import 'package:waseet/features/advertisement/domain/entities/request/get_posts_request.dart';
@@ -98,6 +101,49 @@ class AdDatasource {
     }
   }
 
+  /// Create ad using verification endpoint (multipart with files and extra_info)
+  Future<Resource<AdEntity?>> createAdWithVerification(
+    String advertiserId,
+    String adLicenseNumber,
+    String extraInfo,
+    List<File> files,
+  ) async {
+    try {
+      final images = <dio.MultipartFile>[];
+      for (final f in files) {
+        images.add(
+          await dio.MultipartFile.fromFile(
+            f.path,
+            filename: f.path.split(Platform.pathSeparator).last,
+          ),
+        );
+      }
+
+      final form = dio.FormData.fromMap({
+        'files': images,
+        'adLicenseNumber': adLicenseNumber,
+        'advertiserId': advertiserId,
+        'extra_info': extraInfo,
+      });
+
+      final response = await _apiServices.post<Map<String, dynamic>>(
+        '/advertisements/create-with-verification',
+        data: form,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      );
+
+      final ad = AdResponse.fromMap(response!);
+      if (ad.data != null && ad.data!.isNotEmpty) {
+        return Resource.success(ad.data!.first.toEntity());
+      }
+      return Resource.error(ad.message ?? 'error', null, ad.errors);
+    } catch (e) {
+      return Resource.error(e.toString());
+    }
+  }
+
   Future<Resource<AdEntity?>> getAdById(int id) async {
     try {
       final response = await _apiServices.get<Map<String, dynamic>>(
@@ -133,6 +179,32 @@ class AdDatasource {
         return Resource.success(ad.data!.first.toEntity());
       }
       return Resource.error(ad.message ?? 'error', null, ad.errors);
+    } catch (e) {
+      return Resource.error(e.toString());
+    }
+  }
+
+  /// Verify license endpoint - returns detailed verification data
+  Future<Resource<VerifyLicenseEntity?>> verifyLicense(
+      String advertiserId, String adLicenseNumber,) async {
+    try {
+      final response = await _apiServices.post<Map<String, dynamic>>(
+        '/advertisements/verify-license',
+        data: {
+          'adLicenseNumber': adLicenseNumber,
+          'advertiserId': advertiserId,
+        },
+      );
+
+      if (response == null) return Resource.error('empty response');
+
+      // parse response.data
+      final data = response['data'] as Map<String, dynamic>?;
+      if (data != null) {
+        final model = VerifyLicenseModel.fromMap(data);
+        return Resource.success(model);
+      }
+      return Resource.error(response['message'] as String? ?? 'error');
     } catch (e) {
       return Resource.error(e.toString());
     }
