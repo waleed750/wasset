@@ -119,12 +119,14 @@ class AdDatasource {
         );
       }
 
-      final form = dio.FormData.fromMap({
-        'files': images,
-        'adLicenseNumber': adLicenseNumber,
-        'advertiserId': advertiserId,
-        'extra_info': extraInfo,
-      });
+      final Map<String, dynamic> formMap = {};
+      if (images.isNotEmpty) formMap['files'] = images;
+      if (adLicenseNumber.isNotEmpty) formMap['adLicenseNumber'] = adLicenseNumber;
+      if (advertiserId.isNotEmpty) formMap['advertiserId'] = advertiserId;
+      // only include extra_info if the user entered something
+      if (extraInfo.isNotEmpty) formMap['extra_info'] = extraInfo;
+
+      final form = dio.FormData.fromMap(formMap);
 
       final response = await _apiServices.post<Map<String, dynamic>>(
         '/advertisements/create-with-verification',
