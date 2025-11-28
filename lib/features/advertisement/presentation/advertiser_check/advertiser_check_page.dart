@@ -251,9 +251,9 @@ class _AdvertisementPreviewPageState extends State<AdvertisementPreviewPage> {
                 ]),
                 _sectionCard('جهة الاتصال', [
                   _verticalKV(
-                      'اسم المسؤول', verify?.responsibleEmployeeName ?? '-',),
+                      'اسم المسؤول', verify?.advertiserName ?? '-',),
                   _verticalKV('هاتف المسؤول',
-                      verify?.responsibleEmployeePhoneNumber ?? '-',),
+                      verify?.phoneNumber ?? '-',),
                   _verticalKV('رقم الجوال', verify?.phoneNumber ?? '-'),
                 ]),
                 _sectionCard('ملاحظات ومرفقات التراخيص', [
