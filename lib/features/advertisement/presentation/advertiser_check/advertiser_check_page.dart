@@ -249,6 +249,7 @@ class _AdvertisementPreviewPageState extends State<AdvertisementPreviewPage> {
                   _verticalKV('تاريخ الإنشاء', verify?.creationDate ?? '-'),
                   _verticalKV('تاريخ الانتهاء', verify?.endDate ?? '-'),
                 ]),
+                
                 _sectionCard('جهة الاتصال', [
                   _verticalKV(
                       'اسم المسؤول', verify?.advertiserName ?? '-',),
