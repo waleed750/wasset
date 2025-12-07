@@ -96,8 +96,8 @@ class _AdvertiserCheckPageState extends State<AdvertiserCheckPage> {
               child: Column(
                 children: [
                   WassetTextField(
-                    title: 'رقم الهوية',
-                    hintText: 'أدخل رقم الهوية',
+                    title: 'رقم الهوية / المنشأة',
+                    hintText: 'أدخل رقم الهوية / المنشأة',
                     keyboardType: TextInputType.number,
                     controller: _advertiserController,
                     onChanged: (_) {},
@@ -279,7 +279,10 @@ class _AdvertisementPreviewPageState extends State<AdvertisementPreviewPage> {
                             ElevatedButton(
                               onPressed: () async {
                                 final result = await FilePicker.platform
-                                    .pickFiles(allowMultiple: true);
+                                    .pickFiles(
+                                  allowMultiple: true,
+                                  type: FileType.image,
+                                );
                                 if (result == null) return;
                                 for (final f in result.files) {
                                   if (f.path != null) {
@@ -420,11 +423,28 @@ class _AdvertisementPreviewPageState extends State<AdvertisementPreviewPage> {
 
   List<Widget> _attachmentsPreview() {
     return _attachments.map((f) {
+      final fileName = f.path.split(Platform.pathSeparator).last;
       return Padding(
         padding: const EdgeInsets.only(top: 6),
         child: Row(
           children: [
-            Expanded(child: Text(f.path.split(Platform.pathSeparator).last)),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: Image.file(
+                f,
+                width: 64,
+                height: 64,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stack) => Container(
+                  width: 64,
+                  height: 64,
+                  color: Colors.grey[200],
+                  child: const Icon(Icons.broken_image),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(child: Text(fileName)),
             GestureDetector(
               onTap: () => setState(() => _attachments.remove(f)),
               child: const Icon(Icons.delete, color: AppColors.primaryColor),

@@ -1,8 +1,10 @@
+# source 'https://github.com/CocoaPods/Specs.git'
 # Uncomment this line to define a global platform for your project
-platform :ios, '15.0'
+platform :ios, '16.0'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+install! 'cocoapods', :disable_input_output_paths => true
 
 project 'Runner', {
   'Debug' => :debug,
@@ -30,20 +32,69 @@ flutter_ios_podfile_setup
 target 'Runner' do
   use_frameworks!
   use_modular_headers!
+  pod 'GoogleMaps'
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-  # target 'RunnerTests' do
-  #   inherit! :search_paths
-  # end
+
 end
 
 post_install do |installer|
+  # Detect host architecture: on Apple Silicon we should NOT exclude arm64 for simulator builds
+  host_arch = `uname -m`.strip
+  is_arm = host_arch == 'arm64'
   installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
 
     target.build_configurations.each do |config|
-      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
-    end
+      xcconfig_path = config.base_configuration_reference.real_path
+      xcconfig = File.read(xcconfig_path)
+      xcconfig_mod = xcconfig.gsub(/DT_TOOLCHAIN_DIR/, "TOOLCHAIN_DIR")
+      File.open(xcconfig_path, "w") { |file| file << xcconfig_mod }
 
-    flutter_additional_ios_build_settings(target)
+      # 🔹 Ensure dSYM is generated for all configurations
+      config.build_settings['DEBUG_INFORMATION_FORMAT'] = 'dwarf-with-dsym'
+      # Ensure simulator builds exclude arm64 on problematic setups (Intel macs)
+      unless is_arm
+        config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'arm64'
+      else
+        # On Apple Silicon allow simulator arm64 builds
+        config.build_settings.delete('EXCLUDED_ARCHS[sdk=iphonesimulator*]')
+      end
+    end
+  end
+
+
+  installer.pods_project.build_configurations.each do |config|
+    config.build_settings['CODE_SIGNING_REQUIRED'] = "NO"
+    config.build_settings['CODE_SIGNING_ALLOWED'] = "NO"
+    unless is_arm
+      config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'arm64'
+    else
+      config.build_settings.delete('EXCLUDED_ARCHS[sdk=iphonesimulator*]')
+    end
+    config.build_settings["ONLY_ACTIVE_ARCH"] = "YES"
+    # Prevent Xcode from expanding file-list inputs into many SCRIPT_INPUT_FILE_* env vars,
+    # which can exceed the OS argument/environment size limit and cause spawn failures.
+    config.build_settings['USE_RECURSIVE_SCRIPT_INPUTS_IN_SCRIPT_PHASES'] = 'NO'
+    config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = "16.0"
+  end
+
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      # Disable recursive expansion at the target level as well.
+      config.build_settings['USE_RECURSIVE_SCRIPT_INPUTS_IN_SCRIPT_PHASES'] = 'NO'
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= [
+        '$(inherited)',
+
+        ## dart: PermissionGroup.camera
+        'PERMISSION_CAMERA=1',
+
+        ## dart: PermissionGroup.photos
+        'PERMISSION_PHOTOS=1',
+
+        ## dart: PermissionGroup.mediaLibrary
+        'PERMISSION_MEDIA_LIBRARY=1',
+      ]
+    end
   end
 end
