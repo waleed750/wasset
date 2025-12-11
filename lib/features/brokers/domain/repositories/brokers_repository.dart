@@ -5,7 +5,7 @@ import 'package:waseet/res/resource.dart';
 
 abstract class BrokerRepository {
   Future<Resource<List<GoldenBrokersEntity>?>> getGoldenBrokers({int? cityId});
-  Future<Resource<List<WassetProfileEntity?>?>> getBrokers({int? cityId});
+  Future<Resource<List<WassetProfileEntity?>?>> getBrokers({int? cityId, int page = 1});
   Future<Resource<List<FavBrokerEntity?>?>> getFavBrokers({int? cityId});
   Future<Resource<String?>> addFavBrokers(String brokerId);
   Future<Resource<String?>> removeFavBrokers(String brokerId);

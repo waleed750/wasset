@@ -13,6 +13,7 @@ enum BrokerStatus {
   processLoading,
   processSuccess,
   processFailure,
+  loadingMore,
 }
 
 class KingdomBrokerState extends Equatable {
@@ -29,6 +30,8 @@ class KingdomBrokerState extends Equatable {
     this.selectedTypes,
     this.name,
     this.gender,
+    this.currentPage = 1,
+    this.hasMore = true,
   });
 
   final String errorMessage;
@@ -43,6 +46,8 @@ class KingdomBrokerState extends Equatable {
   final BrokerType? selectedTypes;
   final String? name;
   final String? gender;
+  final int currentPage;
+  final bool hasMore;
   @override
   List<Object?> get props {
     return [
@@ -58,6 +63,8 @@ class KingdomBrokerState extends Equatable {
       description,
       name,
       gender,
+      currentPage,
+      hasMore,
     ];
   }
 
@@ -74,6 +81,8 @@ class KingdomBrokerState extends Equatable {
     BrokerType? selectedTypes,
     String? name,
     String? gender,
+    int? currentPage,
+    bool? hasMore,
   }) {
     return KingdomBrokerState(
       errorMessage: errorMessage ?? this.errorMessage,
@@ -89,6 +98,8 @@ class KingdomBrokerState extends Equatable {
       selectedTypes: selectedTypes ?? this.selectedTypes,
       name: name ?? this.name,
       gender: gender ?? this.gender,
+      currentPage: currentPage ?? this.currentPage,
+      hasMore: hasMore ?? this.hasMore,
     );
   }
 }

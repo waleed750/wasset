@@ -36,7 +36,7 @@ class KingdomBrokerCubit extends Cubit<KingdomBrokerState> {
   Future<void> init() async {
     try {
       emit(state.copyWith(status: BrokerStatus.loading));
-      final brokersData = await _brokerRepository.getBrokers(cityId: cityId);
+      final brokersData = await _brokerRepository.getBrokers(cityId: cityId, page: 1);
       final favBrokersData =
           await _brokerRepository.getFavBrokers(cityId: cityId);
       final categories = await _homeRepository.getCategories();
@@ -297,5 +297,49 @@ class KingdomBrokerCubit extends Cubit<KingdomBrokerState> {
         status: BrokerStatus.loaded,
       ),
     );
+  }
+
+  Future<void> loadMore() async {
+    if (state.status == BrokerStatus.loadingMore || !state.hasMore) {
+      return;
+    }
+    
+    try {
+      emit(state.copyWith(status: BrokerStatus.loadingMore));
+      
+      final nextPage = state.currentPage + 1;
+      final brokersData = await _brokerRepository.getBrokers(cityId: cityId, page: nextPage);
+      
+      if (brokersData is ResourceSuccess) {
+        final newBrokers = brokersData.data;
+        
+        if (newBrokers == null || newBrokers.isEmpty) {
+          emit(
+            state.copyWith(
+              status: BrokerStatus.loaded,
+              hasMore: false,
+            ),
+          );
+          return;
+        }
+        
+        // دمج البيانات الجديدة مع القديمة
+        final allBrokers = [...state.brokers, ...newBrokers];
+        brokers = allBrokers;
+        
+        emit(
+          state.copyWith(
+            brokers: allBrokers,
+            currentPage: nextPage,
+            status: BrokerStatus.loaded,
+            hasMore: newBrokers.length >= 10, // افترض أن كل صفحة تحتوي على 10 عناصر
+          ),
+        );
+      } else {
+        emit(state.copyWith(status: BrokerStatus.loaded));
+      }
+    } catch (e) {
+      emit(state.copyWith(status: BrokerStatus.loaded));
+    }
   }
 }

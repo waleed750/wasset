@@ -16,9 +16,10 @@ class BrokerRepositoryImpl implements BrokerRepository {
   @override
   Future<Resource<List<WassetProfileEntity?>?>> getBrokers({
     int? cityId,
+    int page = 1,
   }) async {
     try {
-      final broker = await _dataSource.getBrokers(cityId: cityId);
+      final broker = await _dataSource.getBrokers(cityId: cityId, page: page);
       if (broker is ResourceError) {
         return Resource.error(broker.message!, null, broker.errors);
       }

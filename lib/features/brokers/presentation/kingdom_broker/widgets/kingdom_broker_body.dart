@@ -9,8 +9,35 @@ import 'package:waseet/features/brokers/presentation/kingdom_broker/widgets/brok
 import 'package:waseet/features/brokers/presentation/kingdom_broker/widgets/brokers_search_and_filter.dart';
 import 'package:waseet/res/assets/assets.gen.dart';
 
-class KingdomBrokerBody extends StatelessWidget {
+class KingdomBrokerBody extends StatefulWidget {
   const KingdomBrokerBody({super.key});
+
+  @override
+  State<KingdomBrokerBody> createState() => _KingdomBrokerBodyState();
+}
+
+class _KingdomBrokerBodyState extends State<KingdomBrokerBody> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent * 0.9) {
+      context.read<KingdomBrokerCubit>().loadMore();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,10 +71,23 @@ class KingdomBrokerBody extends StatelessWidget {
               ),
             Expanded(
               child: ListView.builder(
-                itemCount: state.brokers.length,
-                itemBuilder: (context, index) => BrokerCard(
-                  broker: state.brokers[index]!,
-                ),
+                controller: _scrollController,
+                itemCount: state.brokers.length + (state.hasMore ? 1 : 0),
+                itemBuilder: (context, index) {
+                  if (index >= state.brokers.length) {
+                    return state.status == BrokerStatus.loadingMore
+                        ? const Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          )
+                        : const SizedBox.shrink();
+                  }
+                  return BrokerCard(
+                    broker: state.brokers[index]!,
+                  );
+                },
               ),
             ),
           ],

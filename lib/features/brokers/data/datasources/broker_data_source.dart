@@ -16,13 +16,14 @@ class BrokerDataSource {
 
   Future<Resource<List<WassetProfileEntity?>?>> getBrokers({
     int? cityId,
+    int page = 1,
   }) async {
     try {
       final response = await _apiService.get<Map<String, dynamic>>(
         '/auth/get-all-wasset-kingdom',
         queryParameters: {
           if (cityId != null) 'filter[city_id]': cityId,
-          'page': 1,
+          'page': page,
           'pageSize': 10,
         },
         headers: {
