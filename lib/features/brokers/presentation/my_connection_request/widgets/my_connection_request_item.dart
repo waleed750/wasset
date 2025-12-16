@@ -117,7 +117,7 @@ class ConnectionRequestItem extends StatelessWidget {
   }
 }
 
-class RequestTextRow extends StatelessWidget {
+class RequestTextRow extends StatefulWidget {
   const RequestTextRow({
     super.key,
     required this.lable,
@@ -127,54 +127,114 @@ class RequestTextRow extends StatelessWidget {
   final String lable;
   final String image;
   final String value;
+
+  @override
+  State<RequestTextRow> createState() => _RequestTextRowState();
+}
+
+class _RequestTextRowState extends State<RequestTextRow> {
+  bool _expanded = false;
+  bool _isOverflow = false;
+
+  void _toggle() => setState(() => _expanded = !_expanded);
+
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        DecoratedBox(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.all(
-              const Radius.circular(
-                8,
-              ).r,
-            ),
-            color: Constants.secondaryColor.withOpacity(0.2),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(
-              8,
-            ).r,
-            child: SvgPicture.asset(
-              image,
-              height: 20.h,
-              width: 20.w,
-            ),
-          ),
-        ),
-        SizedBox(
-          width: 5.w,
-        ),
-        Text(
-          lable,
-          style: TextStyle(
-            color: Constants.textColor,
-            fontWeight: FontWeight.bold,
-            fontSize: 12.sp,
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: Constants.textColor,
-              fontSize: 14.sp,
-            ),
-          ),
-        ),
-      ],
+    final labelStyle = TextStyle(
+      color: Constants.textColor,
+      fontWeight: FontWeight.bold,
+      fontSize: 12.sp,
     );
+    final valueStyle = TextStyle(
+      color: Constants.textColor,
+      fontSize: 14.sp,
+    );
+
+    return LayoutBuilder(builder: (context, constraints) {
+      // approximate reserved width for icon and spacing
+      final iconBoxWidth = (8.r * 2) + 20.w; // padding + icon
+      final spacing = 5.w;
+
+      // measure label width
+      final labelPainter = TextPainter(
+        text: TextSpan(text: widget.lable, style: labelStyle),
+        textDirection: TextDirection.rtl,
+        maxLines: 1,
+      )..layout();
+      final labelWidth = labelPainter.width;
+
+      final availableWidth = (constraints.maxWidth - iconBoxWidth - spacing - labelWidth - 8).clamp(0.0, constraints.maxWidth);
+
+      final valueTp = TextPainter(
+        text: TextSpan(text: widget.value, style: valueStyle),
+        textDirection: TextDirection.rtl,
+        maxLines: 3,
+        ellipsis: '...',
+      )..layout(maxWidth: availableWidth);
+
+      _isOverflow = valueTp.didExceedMaxLines;
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.all(
+                    const Radius.circular(
+                      8,
+                    ).r,
+                  ),
+                  color: Constants.secondaryColor.withOpacity(0.2),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(
+                    8,
+                  ).r,
+                  child: SvgPicture.asset(
+                    widget.image,
+                    height: 20.h,
+                    width: 20.w,
+                  ),
+                ),
+              ),
+              SizedBox(width: 5.w),
+              Text(
+                widget.lable,
+                style: labelStyle,
+              ),
+              Expanded(
+                child: Text(
+                  widget.value,
+                  maxLines: _expanded ? null : 3,
+                  overflow: _expanded ? TextOverflow.visible : TextOverflow.ellipsis,
+                  style: valueStyle,
+                ),
+              ),
+            ],
+          ),
+          if (_isOverflow)
+            Align(
+              alignment: Alignment.centerRight,
+              child: GestureDetector(
+                onTap: _toggle,
+                child: Padding(
+                  padding: EdgeInsets.only(top: 4.h),
+                  child: Text(
+                    _expanded ? 'عرض أقل' : 'عرض المزيد',
+                    style: TextStyle(
+                      color: AppColors.primaryColor,
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      );
+    });
   }
 }
