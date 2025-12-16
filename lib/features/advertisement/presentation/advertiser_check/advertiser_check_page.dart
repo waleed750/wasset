@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:waseet/common_widgets/wasset_app_bar.dart';
@@ -74,6 +76,7 @@ class _AdvertiserCheckPageState extends State<AdvertiserCheckPage> {
     }
     setState(() => _submitting = false);
     final message = (verifyRes as ResourceError).message;
+    log('AdvertiserCheckPage: verifyLicense error: $message');
     HelperMethod.showSnackBar(
       context,
       message ?? 'حدث خطأ',
@@ -236,8 +239,8 @@ class _AdvertisementPreviewPageState extends State<AdvertisementPreviewPage> {
                       verify?.obligationsOnTheProperty ?? '-',),
                   _verticalKV('الضمانات ومدتها',
                       verify?.guaranteesAndTheirDuration ?? '-',),
-                  _verticalKV('مطابقة الكود السعودي للبناء',
-                      verify?.complianceWithTheSaudiBuildingCode ?? '-',),
+                    _verticalKV('مطابقة الكود السعودي للبناء',
+                      boolToYesNo(verify?.complianceWithTheSaudiBuildingCode)),
                   _verticalKV('مقيد', boolToYesNo(verify?.isConstrained)),
                   _verticalKV('مرهون', boolToYesNo(verify?.isPawned)),
                   _verticalKV('موقف', boolToYesNo(verify?.isHalted)),

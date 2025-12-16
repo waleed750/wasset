@@ -140,7 +140,8 @@ class VerifyLicenseEntity {
   final String? landNumber;
   final String? obligationsOnTheProperty;
   final String? guaranteesAndTheirDuration;
-  final String? complianceWithTheSaudiBuildingCode;
+  final bool? complianceWithTheSaudiBuildingCode;
+  
   final List<String>? channels;
   final List<dynamic>? propertyUsages;
   final String? mainLandUseTypeName;

@@ -155,7 +155,7 @@ class VerifyLicenseModel extends VerifyLicenseEntity {
       landNumber: map['landNumber'] as String?,
       obligationsOnTheProperty: map['obligationsOnTheProperty'] as String?,
       guaranteesAndTheirDuration: map['guaranteesAndTheirDuration'] as String?,
-      complianceWithTheSaudiBuildingCode: map['complianceWithTheSaudiBuildingCode'] as String?,
+      complianceWithTheSaudiBuildingCode: map['complianceWithTheSaudiBuildingCode'] as bool?,
       channels: (map['channels'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
       propertyUsages: map['propertyUsages'] as List<dynamic>?,
       mainLandUseTypeName: map['mainLandUseTypeName'] as String?,
