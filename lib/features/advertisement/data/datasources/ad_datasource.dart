@@ -66,9 +66,6 @@ class AdDatasource {
       final response = await _apiServices.post<Map<String, dynamic>>(
         '/advertisements',
         data: dio.FormData.fromMap(body),
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
       );
       final ad = AdResponse.fromMap(response!);
       // List<AdModel>
@@ -101,50 +98,78 @@ class AdDatasource {
     }
   }
 
-  /// Create ad using verification endpoint (multipart with files and extra_info)
   Future<Resource<AdEntity?>> createAdWithVerification(
-    String advertiserId,
-    String adLicenseNumber,
-    String extraInfo,
-    List<File> files,
-  ) async {
-    try {
-      final images = <dio.MultipartFile>[];
-      for (final f in files) {
-        images.add(
+  String advertiserId,
+  String adLicenseNumber,
+  String extraInfo,
+  List<File> files,
+) async {
+  try {
+    // Validate files and build FormData
+    final form = dio.FormData();
+
+    // Fields
+    if (adLicenseNumber.trim().isNotEmpty) {
+      form.fields.add(MapEntry('adLicenseNumber', adLicenseNumber.trim()));
+    }
+    if (advertiserId.trim().isNotEmpty) {
+      form.fields.add(MapEntry('advertiserId', advertiserId.trim()));
+    }
+    if (extraInfo.trim().isNotEmpty) {
+      form.fields.add(MapEntry('extra_info', extraInfo.trim()));
+    }
+
+    // Files (match Postman: attachment_files[0], attachment_files[1], ...)
+    for (var i = 0; i < files.length; i++) {
+      final f = files[i];
+
+      if (!f.existsSync()) {
+        return Resource.error('file not found: ${f.path}');
+      }
+
+      final fileName = f.uri.pathSegments.isNotEmpty
+          ? f.uri.pathSegments.last
+          : f.path.split(Platform.pathSeparator).last;
+
+      form.files.add(
+        MapEntry(
+          'attachment_files[$i]',
           await dio.MultipartFile.fromFile(
             f.path,
-            filename: f.path.split(Platform.pathSeparator).last,
+            filename: fileName,
           ),
-        );
-      }
-
-      final Map<String, dynamic> formMap = {};
-      if (images.isNotEmpty) formMap['files'] = images;
-      if (adLicenseNumber.isNotEmpty) formMap['adLicenseNumber'] = adLicenseNumber;
-      if (advertiserId.isNotEmpty) formMap['advertiserId'] = advertiserId;
-      // only include extra_info if the user entered something
-      if (extraInfo.isNotEmpty) formMap['extra_info'] = extraInfo;
-
-      final form = dio.FormData.fromMap(formMap);
-
-      final response = await _apiServices.post<Map<String, dynamic>>(
-        '/advertisements/create-with-verification',
-        data: form,
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+        ),
       );
-
-      final ad = AdResponse.fromMap(response!);
-      if (ad.data != null && ad.data!.isNotEmpty) {
-        return Resource.success(ad.data!.first.toEntity());
-      }
-      return Resource.error(ad.message ?? 'error', null, ad.errors);
-    } catch (e) {
-      return Resource.error(e.toString());
     }
+
+    // Debug: confirm keys
+    for (final e in form.files) {
+      log('multipart file -> key: ${e.key}, filename: ${e.value.filename}');
+    }
+
+    final response = await _apiServices.post<Map<String, dynamic>>(
+      '/advertisements/create-with-verification',
+      data: form,
+      headers: {
+        'Accept': 'application/json',
+        // IMPORTANT: do NOT set Content-Type manually for multipart
+      },
+      onSendProgress: (int sent, int total) {
+        log('upload progress: $sent / $total');
+      },
+    );
+
+    final ad = AdResponse.fromMap(response!);
+
+    if (ad.data != null && ad.data!.isNotEmpty) {
+      return Resource.success(ad.data!.first.toEntity());
+    }
+
+    return Resource.error(ad.message ?? 'error', null, ad.errors);
+  } catch (e) {
+    return Resource.error(e.toString());
   }
+}
 
   Future<Resource<AdEntity?>> getAdById(int id) async {
     try {

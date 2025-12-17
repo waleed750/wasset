@@ -6,6 +6,8 @@ import 'package:waseet/common_widgets/wasset_app_bar.dart';
 import 'package:waseet/common_widgets/wasset_text_field.dart';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
+import 'package:path/path.dart' as p;
+import 'package:waseet/core/utils/image_compress.dart';
 
 import 'package:waseet/features/advertisement/domain/entities/ad_entity.dart';
 import 'package:waseet/features/advertisement/domain/entities/verify_license_entity.dart';
@@ -240,7 +242,7 @@ class _AdvertisementPreviewPageState extends State<AdvertisementPreviewPage> {
                   _verticalKV('الضمانات ومدتها',
                       verify?.guaranteesAndTheirDuration ?? '-',),
                     _verticalKV('مطابقة الكود السعودي للبناء',
-                      boolToYesNo(verify?.complianceWithTheSaudiBuildingCode)),
+                      boolToYesNo(verify?.complianceWithTheSaudiBuildingCode),),
                   _verticalKV('مقيد', boolToYesNo(verify?.isConstrained)),
                   _verticalKV('مرهون', boolToYesNo(verify?.isPawned)),
                   _verticalKV('موقف', boolToYesNo(verify?.isHalted)),
@@ -281,20 +283,42 @@ class _AdvertisementPreviewPageState extends State<AdvertisementPreviewPage> {
                           children: [
                             ElevatedButton(
                               onPressed: () async {
-                                final result = await FilePicker.platform
-                                    .pickFiles(
-                                  allowMultiple: true,
-                                  type: FileType.image,
-                                );
-                                if (result == null) return;
-                                for (final f in result.files) {
-                                  if (f.path != null) {
-                                    setState(
-                                      () => _attachments.add(File(f.path!)),
-                                    );
+                                  final result = await FilePicker.platform.pickFiles(
+                                    allowMultiple: true,
+                                    type: FileType.image,
+                                  );
+                                  if (result == null) return;
+
+                                  const maxBytes = 2 * 1024 * 1024;
+
+                                  for (final f in result.files) {
+                                    if (f.path == null) continue;
+                                    final raw = File(f.path!);
+                                    if (!await raw.exists()) continue;
+
+                                    final originalSize = await raw.length();
+                                    log('image selected: ${raw.path} originalSize: $originalSize');
+
+                                    var toAdd = raw;
+                                    if (originalSize > maxBytes) {
+                                      final compressed = await compressToUnder2MB(raw);
+                                      final compressedSize = await compressed.length();
+                                      log('compressed: ${compressed.path} size: $compressedSize');
+                                      if (compressedSize > maxBytes) {
+                                        HelperMethod.showSnackBar(
+                                          context,
+                                          'الملف ${p.basename(raw.path)} أكبر من 2MB بعد الضغط وتم تجاهله',
+                                          type: SnackBarType.error,
+                                        );
+                                        continue;
+                                      }
+                                      toAdd = compressed;
+                                    }
+
+                                    if (!mounted) return;
+                                    setState(() => _attachments.add(toAdd));
                                   }
-                                }
-                              },
+                                },
                               child: const Text('اختر ملفات'),
                             ),
                             const SizedBox(width: 12),

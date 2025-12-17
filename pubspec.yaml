@@ -12,6 +12,9 @@ dependencies:
   bloc: ^9.1.0
   cloud_firestore: ^6.1.0
   dio: ^5.3.4
+  flutter_image_compress: ^1.1.0
+  path_provider: ^2.0.15
+  path: ^1.8.2
   dotted_border: ^2.1.0
   equatable: ^2.0.5
   file_picker: ^10.3.6
@@ -47,7 +50,6 @@ dependencies:
   url_launcher: ^6.2.6
   video_player: ^2.10.1
   webview_flutter: ^4.7.0
-
 dependency_overrides:
   http: ^0.13.4
   intl: ^0.18.1

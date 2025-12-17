@@ -33,6 +33,9 @@
       "request": "launch",
       "type": "dart",
       "program": "lib/main.dart",
+      // Set the deviceId to the connected Android device to avoid launching on desktop/web
+      // Replace the id below with the result of `flutter devices` if different.
+      "deviceId": "c6ae7a2d",
       "args": [
         "--flavor",
         "production",
