@@ -1,21 +1,16 @@
 import 'dart:io';
-import 'dart:typed_data';
 
-import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:exif/exif.dart' as exif;
+import 'package:image/image.dart' as img;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 /// Compresses [input] image file until it's <= 2MB (2 * 1024 * 1024 bytes).
 ///
+/// - Pure-Dart implementation (no native plugins) using `image` and `exif`.
 /// - If input size is already <= 2MB, returns the original file.
 /// - Otherwise tries progressive quality reductions then resizing widths.
-/// - Output is JPEG stored in temporary directory. Preserves EXIF when possible.
-/// Compresses [input] image file until it's <= 2MB (2 * 1024 * 1024 bytes).
-///
-/// - Cleans up old temp compressed files before starting.
-/// - If input size is already <= 2MB, returns the original file.
-/// - Otherwise tries progressive quality reductions then resizing widths.
-/// - Output is JPEG stored in temporary directory. Preserves EXIF when possible.
+/// - Output is JPEG stored in temporary directory. Tries to preserve EXIF orientation.
 Future<File> compressToUnder2MB(File input) async {
   const maxBytes = 2 * 1024 * 1024;
 
@@ -25,72 +20,90 @@ Future<File> compressToUnder2MB(File input) async {
   final tempDir = await getTemporaryDirectory();
   final baseName = p.basenameWithoutExtension(input.path);
 
-  // Clean up old temp compressed files for this image
+  // try to remove old temp outputs for this baseName
   try {
-    final entries = tempDir.listSync();
-    for (final e in entries) {
+    for (final e in tempDir.listSync()) {
       if (e is File) {
         final name = p.basename(e.path);
         if (name.startsWith('${baseName}_cmp_') && name.endsWith('.jpg')) {
-          e.deleteSync();
+          try {
+            e.deleteSync();
+          } catch (_) {}
         }
       }
     }
-  } catch (_) {
-    // ignore errors
-  }
+  } catch (_) {}
 
-  // quality-first attempts
   final qualitySteps = <int>[95, 85, 75, 65, 55, 45, 35, 25];
   final widthSteps = <int>[1920, 1600, 1280, 1024, 800, 640, 480];
 
-  Future<File?> tryCompress({int minWidth = 1920, required int quality}) async {
-    try {
-      final result = await FlutterImageCompress.compressWithFile(
-        input.path,
-        minWidth: minWidth,
-        quality: quality,
-        keepExif: true,
-      );
-      if (result == null || result.isEmpty) return null;
-      final outPath = p.join(
-        tempDir.path,
-        '${baseName}_cmp_${minWidth ?? 0}_q$quality${DateTime.now().millisecondsSinceEpoch}.jpg',
-      );
-      final outFile = File(outPath);
-      await outFile.writeAsBytes(result, flush: true);
-      return outFile;
-    } catch (_) {
-      return null;
+  final bytes = await input.readAsBytes();
+
+  // Read EXIF orientation
+  var orientation = 1;
+  try {
+    final tags = await exif.readExifFromBytes(bytes);
+    final orientTag = tags?['Image Orientation'] ?? tags?['Orientation'];
+    if (orientTag != null) {
+      final printable = orientTag.printable ?? '';
+      final match = RegExp(r'\d+').firstMatch(printable);
+      if (match != null) orientation = int.tryParse(match.group(0) ?? '1') ?? 1;
     }
+  } catch (_) {
+    // ignore exif errors
   }
 
-  // first try reducing quality only
+  final decoded = img.decodeImage(bytes);
+  if (decoded == null) return input;
+
+  // apply orientation correction
+  var oriented = decoded;
+  switch (orientation) {
+    case 3:
+      oriented = img.copyRotate(decoded, angle: 180);
+      break;
+    case 6:
+      oriented = img.copyRotate(decoded, angle: 90);
+      break;
+    case 8:
+      oriented = img.copyRotate(decoded, angle: -90);
+      break;
+    default:
+      oriented = decoded;
+  }
+
+  Future<File> writeJpeg(img.Image image, int quality, int tagWidth) async {
+    final data = img.encodeJpg(image, quality: quality);
+    final outPath = p.join(
+      tempDir.path,
+      '${baseName}_cmp_${tagWidth}_q${quality}_${DateTime.now().millisecondsSinceEpoch}.jpg',
+    );
+    final out = File(outPath);
+    await out.writeAsBytes(data, flush: true);
+    return out;
+  }
+
+  // try quality reductions first
   for (final q in qualitySteps) {
-    final out = await tryCompress( quality: q);
-    if (out == null) continue;
+    final out = await writeJpeg(oriented, q, 0);
     final len = await out.length();
     if (len <= maxBytes) return out;
   }
 
-  // then try resizing with decreasing widths + quality steps
+  // then try resizing + quality
   for (final w in widthSteps) {
+    final resized = img.copyResize(oriented, width: w);
     for (final q in qualitySteps) {
-      final out = await tryCompress(minWidth: w, quality: q);
-      if (out == null) continue;
+      final out = await writeJpeg(resized, q, w);
       final len = await out.length();
       if (len <= maxBytes) return out;
     }
   }
 
-  // if all attempts fail, return the smallest produced file (if any), otherwise original
-  // Keep track of produced candidates and return the smallest one if none met the limit
+  // pick smallest candidate if any
   final candidates = <File>[];
-
-  // collect files produced by previous attempts in temp dir
   try {
-    final entries = tempDir.listSync();
-    for (final e in entries) {
+    for (final e in tempDir.listSync()) {
       if (e is File) {
         final name = p.basename(e.path);
         if (name.startsWith('${baseName}_cmp_') && name.endsWith('.jpg')) {
@@ -98,25 +111,13 @@ Future<File> compressToUnder2MB(File input) async {
         }
       }
     }
-  } catch (_) {
-    // ignore listing errors
-  }
+  } catch (_) {}
 
   if (candidates.isNotEmpty) {
     candidates.sort((a, b) => a.lengthSync().compareTo(b.lengthSync()));
-    final best = candidates.first;
-    final bestLen = await best.length();
-    if (bestLen <= maxBytes) return best;
-    return best; // return smallest even if >2MB (caller will skip)
+    return candidates.first;
   }
 
-  // fallback: try a final aggressive compression
-  final finalOut = await tryCompress(minWidth: 480, quality: 20);
-  if (finalOut != null) {
-    final len = await finalOut.length();
-    if (len <= maxBytes) return finalOut;
-    return finalOut; // even if >2MB, caller will check and skip
-  }
-
+  // fallback: return original (caller may skip if >2MB)
   return input;
 }

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 class Constants {
   static const String baseUrl = 'https://waseetco.sa/';
-  // static const String baseApiUrl = 'https://waseetco.sa/api/v1/';
-  static const String baseApiUrl = 'https://staging.waseetco.sa/api/v1/';
+  static const String baseApiUrl = 'https://waseetco.sa/api/v1/';
+  // static const String baseApiUrl = 'https://staging.waseetco.sa/api/v1/';
   static const String adEmpty = 'assets/icons/ad_empty.svg';
   static const String tahalf_3am = 'assets/icons/tahalf3am.svg';
   static const String mada = 'assets/images/payment-mada.png';

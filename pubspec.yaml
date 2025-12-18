@@ -12,7 +12,9 @@ dependencies:
   bloc: ^9.1.0
   cloud_firestore: ^6.1.0
   dio: ^5.3.4
-  flutter_image_compress: ^1.1.0
+  # replaced flutter_image_compress (native) with pure-Dart `image` + `exif`
+  image: ^4.0.17
+  exif: ^2.0.3
   path_provider: ^2.0.15
   path: ^1.8.2
   dotted_border: ^2.1.0
