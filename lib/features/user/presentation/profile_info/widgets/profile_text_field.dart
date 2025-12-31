@@ -15,7 +15,11 @@ class ProfileTextField extends StatefulWidget {
     this.maxLines = 1,
     this.controller,
     this.enabled = true,
+    this.visibleTail = 0,
   });
+
+  final int visibleTail;
+
 
   final String? text;
   final String? initialValue;
@@ -33,15 +37,76 @@ class ProfileTextField extends StatefulWidget {
 
 class _ProfileTextFieldState extends State<ProfileTextField> {
   late TextEditingController _controller;
+  late PhoneMaskingDescriptionFormatter _maskFormatter;
+  String? _rawValue;
+  late FocusNode _focusNode;
 
   @override
   void initState() {
     super.initState();
-    _controller =
-        widget.controller ?? TextEditingController(text: widget.initialValue);
+    _maskFormatter = PhoneMaskingDescriptionFormatter();
 
+    // keep the raw (unmasked) value when possible
+    _rawValue = widget.initialValue;
+    final initialText = widget.initialValue ?? '';
+    String maskWithTail(String phone, int tail) {
+      final len = phone.length;
+      if (tail <= 0) return '#' * len;
+      if (tail >= len) return phone;
+      return ('#' * (len - tail)) + phone.substring(len - tail);
+    }
+
+    final maskedInitial = initialText.replaceAllMapped(
+      _maskFormatter.phoneRegex,
+      (match) {
+        final phone = match.group(0)!;
+        return maskWithTail(phone, widget.visibleTail);
+      },
+    );
+
+    _controller = widget.controller ?? TextEditingController(text: maskedInitial);
+
+    _focusNode = widget.focusNode ?? FocusNode();
+
+    var ignoreInitial = true;
     _controller.addListener(() {
-      widget.onChanged?.call(_controller.text);
+      if (ignoreInitial) {
+        ignoreInitial = false;
+        return;
+      }
+
+      // if field is focused, user is editing raw input
+      if (_focusNode.hasFocus) {
+        _rawValue = _controller.text;
+        widget.onChanged?.call(_rawValue ?? '');
+      }
+      // if not focused, do not emit changes (we show masked text)
+    });
+
+    _focusNode.addListener(() {
+      if (_focusNode.hasFocus) {
+        // switch to raw value for editing
+        _controller.text = _rawValue ?? initialText;
+        _controller.selection = TextSelection.fromPosition(
+          TextPosition(offset: _controller.text.length),
+        );
+      } else {
+        // mask the displayed text when focus lost
+        final textToMask = _rawValue ?? _controller.text;
+        String maskWithTail(String phone, int tail) {
+          final len = phone.length;
+          if (tail <= 0) return '#' * len;
+          if (tail >= len) return phone;
+          return ('#' * (len - tail)) + phone.substring(len - tail);
+        }
+
+        final masked = textToMask.replaceAllMapped(_maskFormatter.phoneRegex, (match) {
+          final phone = match.group(0)!;
+          return maskWithTail(phone, widget.visibleTail);
+        });
+        _controller.text = masked;
+        _controller.selection = TextSelection.collapsed(offset: masked.length);
+      }
     });
   }
 
@@ -67,18 +132,16 @@ class _ProfileTextFieldState extends State<ProfileTextField> {
         const SizedBox(
           height: 10,
         ),
-        TextFormField(
+          TextFormField(
           onTapOutside: (s) {
             FocusScope.of(context).unfocus();
           },
           enabled: widget.enabled,
           keyboardType: widget.keyboardType,
-          focusNode: widget.focusNode,
+          focusNode: _focusNode,
           controller: _controller,
           maxLines: widget.maxLines,
-          inputFormatters: [
-            PhoneMaskingDescriptionFormatter(),
-          ],
+          // show raw while editing (focus), masked while not focused
           decoration: InputDecoration(
             hintText: widget.hintText,
             hintStyle: const TextStyle(
@@ -133,11 +196,11 @@ class PhoneMaskingDescriptionFormatter extends TextInputFormatter {
     }
 
     // نستبدل كل رقم تليفون بسلسلة # بنفس الطول
-    String masked = text.replaceAllMapped(phoneRegex, (match) {
+    final masked = text.replaceAllMapped(phoneRegex, (match) {
       final phone = match.group(0)!;
       lastDetectedPhone = phone; // حفظ آخر رقم لو حابب تستخدمه
 
-      return "#" * phone.length;
+      return '#' * phone.length;
     });
 
     return TextEditingValue(

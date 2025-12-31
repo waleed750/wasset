@@ -139,6 +139,7 @@ class ProfileInfoBody extends StatelessWidget {
                               .setIdentityNumber(value);
                         },
                         enabled: appState.user?.profile?.isVerified != true,
+                        visibleTail: 3,
                       ),
                       const SizedBox(
                         height: 20,
@@ -163,6 +164,7 @@ class ProfileInfoBody extends StatelessWidget {
                                 .read<ProfileInfoCubit>()
                                 .setLicenseNumber(value);
                           },
+                          visibleTail: 3,
                         ),
                         const SizedBox(
                           height: 20,
@@ -374,7 +376,7 @@ class ProfileInfoBody extends StatelessWidget {
                         child: WassetButton(
                           text: 'حفظ',
                           onTap: () {
-                            context.read<ProfileInfoCubit>().updateProfile();
+                            _ensureFullIdsAndUpdate(context);
                           },
                           isLoading: state.status == ProfileInfoStatus.updating,
                         ),
@@ -388,5 +390,73 @@ class ProfileInfoBody extends StatelessWidget {
         },
       ),
     );
+  }
+
+  Future<void> _ensureFullIdsAndUpdate(BuildContext context) async {
+    final cubit = context.read<ProfileInfoCubit>();
+    final state = cubit.state;
+
+    // heuristics: Saudi ID 10 digits, license 7 digits
+    final idOk = state.identityNumber != null &&
+        state.identityNumber!.replaceAll('#', '').length >= 10 &&
+        !state.identityNumber!.contains('#');
+    final licenseOk = state.licenseNumber != null &&
+        state.licenseNumber!.replaceAll('#', '').length >= 7 &&
+        !state.licenseNumber!.contains('#');
+
+    if (idOk && licenseOk) {
+      await cubit.updateProfile();
+      return;
+    }
+
+    final idController = TextEditingController(
+        text: state.identityNumber?.replaceAll('#', '') ?? '',);
+    final licenseController = TextEditingController(
+        text: state.licenseNumber?.replaceAll('#', '') ?? '',);
+
+    final proceed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('أدخل الأرقام كاملة'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: idController,
+              keyboardType: TextInputType.number,
+              decoration:
+                  const InputDecoration(labelText: 'رقم الهوية (10 أرقام)'),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: licenseController,
+              keyboardType: TextInputType.number,
+              decoration:
+                  const InputDecoration(labelText: 'رقم الرخصة (7 أرقام)'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('إلغاء'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(ctx).pop(true);
+            },
+            child: const Text('إرسال'),
+          ),
+        ],
+      ),
+    );
+
+    if (proceed == true) {
+      final id = idController.text.trim();
+      final lic = licenseController.text.trim();
+      if (id.isNotEmpty) cubit.setIdentityNumber(id);
+      if (lic.isNotEmpty) cubit.setLicenseNumber(lic);
+      await cubit.updateProfile();
+    }
   }
 }

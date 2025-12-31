@@ -37,10 +37,14 @@ class ProfileInfoCubit extends Cubit<ProfileInfoState> {
           ),
         ) {
     _profile = profile;
+    _originalIdentityNumber = profile?.profile?.identityNumber;
+    _originalLicenseNumber = profile?.profile?.licenseNumber;
     getCities();
   }
 
   WassetUser? _profile;
+  String? _originalIdentityNumber;
+  String? _originalLicenseNumber;
 
   final HomeRepository _homeRepository;
   final AuthenticationRepository _authenticationRepository;
@@ -119,16 +123,51 @@ class ProfileInfoCubit extends Cubit<ProfileInfoState> {
   Future<void> updateProfile() async {
     try {
       emit(state.copyWith(status: ProfileInfoStatus.updating));
+      String resolveFull(String? current, String? original) {
+        if (current == null || current.isEmpty) return original ?? '';
+        // If current contains mask characters, prefer original
+        if (current.contains('#')) return original ?? current;
+        // If original exists and current is shorter than original, prefer original
+        if (original != null && current.length < original.length) return original;
+        return current;
+      }
+
+      // If originals are missing or appear shorter than current, try refreshing user from repository
+      if ((_originalIdentityNumber == null && (state.identityNumber != null && state.identityNumber!.isNotEmpty)) ||
+          (_originalLicenseNumber == null && (state.licenseNumber != null && state.licenseNumber!.isNotEmpty)) ||
+          (_originalIdentityNumber != null && state.identityNumber != null && state.identityNumber!.length < _originalIdentityNumber!.length) ||
+          (_originalLicenseNumber != null && state.licenseNumber != null && state.licenseNumber!.length < _originalLicenseNumber!.length)) {
+        try {
+          final fresh = await _authenticationRepository.getUser();
+          if (fresh is ResourceSuccess) {
+            _profile = fresh.data;
+            _originalIdentityNumber = _profile?.profile?.identityNumber;
+            _originalLicenseNumber = _profile?.profile?.licenseNumber;
+          }
+        } catch (_) {}
+      }
+
+      final finalIdentityNumber = resolveFull(state.identityNumber, _originalIdentityNumber);
+      final finalLicenseNumber = resolveFull(state.licenseNumber, _originalLicenseNumber);
+
+      // Debug: log identity/license values before sending
+      try {
+        print('DEBUG updateProfile - state.identityNumber: ${state.identityNumber}');
+        print('DEBUG updateProfile - _originalIdentityNumber: $_originalIdentityNumber');
+        print('DEBUG updateProfile - state.licenseNumber: ${state.licenseNumber}');
+        print('DEBUG updateProfile - _originalLicenseNumber: $_originalLicenseNumber');
+        print('DEBUG updateProfile - finalIdentityNumber: $finalIdentityNumber');
+        print('DEBUG updateProfile - finalLicenseNumber: $finalLicenseNumber');
+      } catch (_) {}
+
       final response = await _authenticationRepository.updateProfile(
-        UpdateProfileRequest(
-          name: state.name ?? _profile?.name ?? '',
-          email: state.email.value.isNotEmpty
-              ? state.email.value
-              : _profile?.email ?? '',
-          identityNumber:
-              state.identityNumber ?? _profile?.profile?.identityNumber ?? '',
-          licenseNumber:
-              state.licenseNumber ?? _profile?.profile?.licenseNumber ?? '',
+      UpdateProfileRequest(
+        name: state.name ?? _profile?.name ?? '',
+        email: state.email.value.isNotEmpty
+          ? state.email.value
+          : _profile?.email ?? '',
+        identityNumber: finalIdentityNumber,
+        licenseNumber: finalLicenseNumber,
           wassetSpecialization:
               state.brokerSpecialization?.map((e) => e.id!).toList() ??
                   _profile?.profile?.wassetSpecialization
@@ -152,6 +191,8 @@ class ProfileInfoCubit extends Cubit<ProfileInfoState> {
         final response = await _authenticationRepository.getUser();
         if (response is ResourceSuccess) {
           _profile = response.data;
+          _originalIdentityNumber = _profile?.profile?.identityNumber;
+          _originalLicenseNumber = _profile?.profile?.licenseNumber;
         }
         emit(
           state.copyWith(
@@ -185,6 +226,9 @@ class ProfileInfoCubit extends Cubit<ProfileInfoState> {
       _profile?.isBroker ?? true,
     );
     if (response is ResourceSuccess) {
+      _profile = response.data;
+      _originalIdentityNumber = _profile?.profile?.identityNumber;
+      _originalLicenseNumber = _profile?.profile?.licenseNumber;
       emit(
         state.copyWith(
           status: ProfileInfoStatus.updated,
