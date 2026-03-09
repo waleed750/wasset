@@ -34,6 +34,9 @@ enum Screens {
   aboutUs,
   complaint,
   policiesAndProvisions,
+  developerProjects,
+  developerProjectDetails,
+  developerUnitDetails,
 }
 
 extension ScreenName on Screens {

@@ -45,22 +45,26 @@ class HelperMethod {
       );
   }
 
-  static Future<void> openWhatsapp(String phoneNumber) async {
+  static Future<void> openWhatsapp(String phoneNumber, [BuildContext? context]) async {
     final uri =
         Uri.parse("https://wa.me/966${phoneNumber.replaceFirst('0', '')}");
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     } else {
-      // showSnackBar(context, message)
+      if (context != null) {
+        showSnackBar(context, 'تعذر فتح تطبيق واتساب');
+      }
     }
   }
 
-  static Future<void> openCall(String phoneNumber) async {
+  static Future<void> openCall(String phoneNumber, [BuildContext? context]) async {
     final uri = Uri.parse('tel:$phoneNumber');
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     } else {
-      // showSnackBar(context, message)
+      if (context != null) {
+        showSnackBar(context, 'تعذر إجراء المكالمة');
+      }
     }
   }
 

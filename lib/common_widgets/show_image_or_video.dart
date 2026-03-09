@@ -54,13 +54,29 @@ class _ShowImageOrVideoState extends State<ShowImageOrVideo> {
           fit: BoxFit.cover,
           height: widget.height,
           width: widget.width,
+          errorBuilder: (_, __, ___) => ColoredBox(
+            color: Colors.grey.shade200,
+            child: const Icon(Icons.broken_image),
+          ),
         );
       } else {
+        // Support file:// URIs as well as plain paths
+        var filePath = widget.path;
+        if (filePath.startsWith('file://')) {
+          try {
+            filePath = Uri.parse(filePath).toFilePath();
+          } catch (_) {}
+        }
+
         return Image.file(
-          File(widget.path),
+          File(filePath),
           fit: BoxFit.cover,
           height: widget.height,
           width: widget.width,
+          errorBuilder: (_, __, ___) => ColoredBox(
+            color: Colors.grey.shade200,
+            child: const Icon(Icons.broken_image),
+          ),
         );
       }
     } else {

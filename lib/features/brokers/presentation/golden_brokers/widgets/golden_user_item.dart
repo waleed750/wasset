@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:waseet/constants/constants.dart';
+import 'package:waseet/common_widgets/adaptive_image.dart';
 import 'package:waseet/features/brokers/domain/entities/golden_brokers_entity.dart';
 import 'package:waseet/res/assets/assets.gen.dart';
 import 'package:waseet/res/helper_method.dart';
@@ -62,9 +63,7 @@ class GoldenUserItem extends StatelessWidget {
                           CircleAvatar(
                             radius: 30.r,
                             backgroundImage: goldenBroker.photo.isNotEmpty
-                                ? NetworkImage(
-                                    goldenBroker.photo,
-                                  )
+                                ? adaptiveImageProvider(goldenBroker.photo)
                                 : null,
                             child: goldenBroker.photo.isEmpty
                                 ? Icon(

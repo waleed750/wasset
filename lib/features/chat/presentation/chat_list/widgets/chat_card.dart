@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:waseet/res/res.dart';
+import 'package:waseet/common_widgets/adaptive_image.dart';
 
 class ChatCard extends StatelessWidget {
   const ChatCard({
@@ -40,13 +41,18 @@ class ChatCard extends StatelessWidget {
             radius: 30,
             backgroundColor: AppColors.primaryColor,
             child: imageUrl != null
-                ? ClipRRect(
+                    ? ClipRRect(
                     borderRadius: BorderRadius.circular(30),
-                    child: Image.network(
-                      imageUrl!,
+                    child: AdaptiveImage(
+                      path: imageUrl,
                       width: 60,
                       height: 60,
                       fit: BoxFit.cover,
+                      errorWidget: const Icon(
+                        Icons.person,
+                        size: 30,
+                        color: Colors.white,
+                      ),
                     ),
                   )
                 : const Icon(

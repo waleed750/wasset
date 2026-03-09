@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_image_slideshow/flutter_image_slideshow.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:waseet/common_widgets/skeleton.dart';
+import 'package:waseet/common_widgets/adaptive_image.dart';
 import 'package:waseet/constants/constants.dart';
 import 'package:waseet/features/user/presentation/home_page/cubit/cubit.dart';
 
@@ -35,9 +36,7 @@ class CustomSlider extends StatelessWidget {
                       borderRadius: BorderRadius.circular(10),
                       image: DecorationImage(
                         fit: BoxFit.fill,
-                        image: NetworkImage(
-                          state.sliders[index].image,
-                        ),
+                        image: adaptiveImageProvider(state.sliders[index].image),
                       ),
                     ),
                   ),

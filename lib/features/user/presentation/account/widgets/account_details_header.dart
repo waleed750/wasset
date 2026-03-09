@@ -7,6 +7,7 @@ import 'package:waseet/app/bloc/app_bloc.dart';
 import 'package:waseet/features/user/presentation/account/widgets/curve_clipper.dart';
 import 'package:waseet/features/user/presentation/profile_info/profile_info.dart';
 import 'package:waseet/res/assets/assets.gen.dart';
+import 'package:waseet/common_widgets/adaptive_image.dart';
 import 'package:waseet/res/enums/broker_type.dart';
 import 'package:waseet/router/screens.dart';
 
@@ -43,13 +44,17 @@ class AccountDetailsHeader extends StatelessWidget {
                             radius: 30.r,
                             backgroundColor: Colors.white,
                             child: state.user?.profile?.profileImage != null
-                                ? ClipRRect(
+                                    ? ClipRRect(
                                     borderRadius: BorderRadius.circular(50.r),
-                                    child: Image.network(
-                                      state.user!.profile!.profileImage!,
+                                    child: AdaptiveImage(
+                                      path: state.user!.profile!.profileImage,
                                       width: 60.w,
                                       height: 60.h,
                                       fit: BoxFit.cover,
+                                      errorWidget: Assets.icons.user.svg(
+                                        width: 30.w,
+                                        height: 30.h,
+                                      ),
                                     ),
                                   )
                                 : Assets.icons.user.svg(

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:waseet/common_widgets/wasset_app_bar.dart';
 import 'package:waseet/features/user/domain/repositories/home_repository.dart';
 import 'package:waseet/res/resource.dart';
+import 'package:waseet/common_widgets/adaptive_image.dart';
 
 class AboutUs extends StatelessWidget {
   const AboutUs({super.key});
@@ -28,8 +29,8 @@ class AboutUs extends StatelessWidget {
               return Scaffold(
                 body: Column(
                   children: [
-                    Image.network(
-                      'https://huest.nyc3.digitaloceanspaces.com/${aboutUs!.logo}',
+                    AdaptiveImage(
+                      path: 'https://huest.nyc3.digitaloceanspaces.com/${aboutUs!.logo}',
                       height: 200,
                       width: 200,
                       fit: BoxFit.cover,

@@ -16,6 +16,8 @@ import 'package:waseet/features/brokers/data/repositories/brokers_repository_imp
 import 'package:waseet/features/brokers/data/repositories/communication_repository_impl.dart';
 import 'package:waseet/features/chat/data/datasources/chat_datasource_impl.dart';
 import 'package:waseet/features/chat/data/repositories/chat_repository_impl.dart';
+import 'package:waseet/features/developer_real_estate/data/datasources/developer_real_estate_datasource.dart';
+import 'package:waseet/features/developer_real_estate/data/repositories/developer_real_estate_repository_impl.dart';
 import 'package:waseet/features/tahalf/data/datasources/tahalf_data_source.dart';
 import 'package:waseet/features/tahalf/data/repositories/tahalf_repository_impl.dart';
 import 'package:waseet/features/user/data/datasources/authentication_data_source.dart';
@@ -90,6 +92,13 @@ void main() async {
       CommunicationDataSource(apiService: apiService);
   final communicationRepository =
       CommunicationRepositoryImpl(dataSource: communicationDataSource);
+
+  // developer real estate depedencies
+  final developerRealEstateDataSource =
+      DeveloperRealEstateDatasource(apiService: apiService);
+  final developerRealEstateRepository = DeveloperRealEstateRepositoryImpl(
+    datasource: developerRealEstateDataSource,
+  );
 //Complaint
   EasyLoading.instance
     ..indicatorWidget = const _LoadingDialogOverly()
@@ -106,6 +115,7 @@ void main() async {
       chatRepository: chatRepository,
       complaintRepository: complaintRepository,
       communicationRepository: communicationRepository,
+      developerRealEstateRepository: developerRealEstateRepository,
     ),
   );
 }

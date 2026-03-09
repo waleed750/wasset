@@ -8,6 +8,7 @@ import 'package:waseet/features/advertisement/presentation/add_new_ad/widgets/re
 import 'package:waseet/res/assets/assets.gen.dart';
 import 'package:waseet/res/helper_method.dart';
 import 'package:waseet/res/res.dart';
+import 'package:waseet/common_widgets/adaptive_image.dart';
 import 'package:waseet/router/screens.dart';
 
 /// {@template ad_details_body}
@@ -288,18 +289,12 @@ class AdDetailsBody extends StatelessWidget {
                           children: [
                             CircleAvatar(
                               radius: 20.w,
-                              backgroundImage:
-                                  ad.createdBy?.profile?.profileImage != null
-                                      ? NetworkImage(
-                                          ad.createdBy?.profile?.profileImage
-                                                  .toString() ??
-                                              '',
-                                        )
-                                      : null,
-                              backgroundColor:
-                                  ad.createdBy?.profile?.profileImage == null
-                                      ? AppColors.primaryColor
-                                      : null,
+                              backgroundImage: ad.createdBy?.profile?.profileImage != null
+                                  ? adaptiveImageProvider(ad.createdBy?.profile?.profileImage)
+                                  : null,
+                              backgroundColor: ad.createdBy?.profile?.profileImage == null
+                                  ? AppColors.primaryColor
+                                  : null,
                               child: ad.createdBy?.profile?.profileImage == null
                                   ? const Icon(
                                       Icons.person,

@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:waseet/features/user/domain/entities/cities_entity.dart';
 import 'package:waseet/router/screens.dart';
+import 'package:waseet/common_widgets/adaptive_image.dart';
 
 class CityItem extends StatelessWidget {
   const CityItem({
@@ -27,7 +28,7 @@ class CityItem extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
               image: DecorationImage(
-                image: NetworkImage(city.image),
+                image: adaptiveImageProvider(city.image),
                 fit: BoxFit.cover,
               ),
             ),

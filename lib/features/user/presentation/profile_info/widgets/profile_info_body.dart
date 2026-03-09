@@ -15,6 +15,7 @@ import 'package:waseet/features/user/presentation/register/widgets/wasset_button
 import 'package:waseet/res/enums/broker_type.dart';
 import 'package:waseet/res/helper_method.dart';
 import 'package:waseet/res/res.dart';
+import 'package:waseet/common_widgets/adaptive_image.dart';
 
 /// {@template profile_info_body}
 /// Body of the ProfileInfoPage.
@@ -56,13 +57,18 @@ class ProfileInfoBody extends StatelessWidget {
                               radius: 50,
                               backgroundColor: Colors.white,
                               child: user?.profileImage != null
-                                  ? ClipRRect(
+                                      ? ClipRRect(
                                       borderRadius: BorderRadius.circular(50),
-                                      child: Image.network(
-                                        user?.profileImage ?? '',
+                                      child: AdaptiveImage(
+                                        path: user?.profileImage ?? '',
                                         width: 100.w,
                                         height: 100.w,
                                         fit: BoxFit.cover,
+                                        errorWidget: const Icon(
+                                          Icons.person,
+                                          size: 50,
+                                          color: AppColors.primaryColor,
+                                        ),
                                       ),
                                     )
                                   : const Icon(
@@ -226,7 +232,7 @@ class ProfileInfoBody extends StatelessWidget {
                                 .read<ProfileInfoCubit>()
                                 .setSelectedCategory(value!);
                           },
-                          value: state.selectedCategory ??
+                          initialValue: state.selectedCategory ??
                               state.categories.singleWhere(
                                 (element) =>
                                     element.id ==
@@ -315,7 +321,7 @@ class ProfileInfoBody extends StatelessWidget {
                                 .read<ProfileInfoCubit>()
                                 .setBrokerType(value!);
                           },
-                          value: user?.officeType?.toBrokerType ??
+                          initialValue: user?.officeType?.toBrokerType ??
                               BrokerType.wasset,
                         ),
                         if (state.officeType == BrokerType.office) ...[
@@ -451,7 +457,7 @@ class ProfileInfoBody extends StatelessWidget {
       ),
     );
 
-    if (proceed == true) {
+    if (proceed ?? false) {
       final id = idController.text.trim();
       final lic = licenseController.text.trim();
       if (id.isNotEmpty) cubit.setIdentityNumber(id);

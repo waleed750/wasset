@@ -10,6 +10,7 @@ import 'package:waseet/features/advertisement/domain/repositories/ad_repository.
 import 'package:waseet/features/brokers/domain/repositories/brokers_repository.dart';
 import 'package:waseet/features/brokers/domain/repositories/communication_repository.dart';
 import 'package:waseet/features/chat/domain/repositories/chat_repository.dart';
+import 'package:waseet/features/developer_real_estate/domain/repositories/developer_real_estate_repository.dart';
 import 'package:waseet/features/tahalf/domain/repositories/tahalf_repository.dart';
 import 'package:waseet/features/user/domain/repositories/authentication_repository.dart';
 import 'package:waseet/features/user/domain/repositories/complaints_repository.dart';
@@ -29,6 +30,7 @@ class App extends StatelessWidget {
     required ChatRepository chatRepository,
     required ComplaintRepository complaintRepository,
     required CommunicationRepository communicationRepository,
+    required DeveloperRealEstateRepository developerRealEstateRepository,
   })  : _authenticationRepository = authenticationRepository,
         _homeRepository = homeRepository,
         _tahalfRepository = tahalfRepository,
@@ -36,7 +38,8 @@ class App extends StatelessWidget {
         _brokerRepository = brokerRepository,
         _chatRepository = chatRepository,
         _complaintRepository = complaintRepository,
-        _communicationRepository = communicationRepository;
+        _communicationRepository = communicationRepository,
+        _developerRealEstateRepository = developerRealEstateRepository;
 
   final AuthenticationRepository _authenticationRepository;
   final HomeRepository _homeRepository;
@@ -46,6 +49,7 @@ class App extends StatelessWidget {
   final ChatRepository _chatRepository;
   final ComplaintRepository _complaintRepository;
   final CommunicationRepository _communicationRepository;
+  final DeveloperRealEstateRepository _developerRealEstateRepository;
   @override
   Widget build(BuildContext context) {
     return MultiRepositoryProvider(
@@ -58,6 +62,7 @@ class App extends StatelessWidget {
         RepositoryProvider.value(value: _chatRepository),
         RepositoryProvider.value(value: _complaintRepository),
         RepositoryProvider.value(value: _communicationRepository),
+        RepositoryProvider.value(value: _developerRealEstateRepository),
       ],
       child: BlocProvider(
         create: (context) => AppBloc(
@@ -104,7 +109,7 @@ class _AppViewState extends State<AppView> {
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
             textTheme: GoogleFonts.ibmPlexSansArabicTextTheme(),
-            appBarTheme: const AppBarTheme(color: Colors.white),
+            appBarTheme: const AppBarTheme(backgroundColor: Colors.white),
             colorScheme: ColorScheme.fromSwatch(
               accentColor: const Color(0xFF7432FF),
             ),

@@ -10,6 +10,7 @@ import 'package:waseet/features/user/domain/entities/wasset_profile_entity.dart'
 import 'package:waseet/res/enums/broker_type.dart';
 import 'package:waseet/res/helper_method.dart';
 import 'package:waseet/res/res.dart';
+import 'package:waseet/common_widgets/adaptive_image.dart';
 import 'package:waseet/router/screens.dart';
 
 class BrokerCard extends StatelessWidget {
@@ -101,7 +102,7 @@ class BrokerCard extends StatelessWidget {
                       radius: 25.r,
                       backgroundImage: broker.profileImage == null
                           ? null
-                          : NetworkImage(broker.profileImage!),
+                          : adaptiveImageProvider(broker.profileImage),
                     ),
                     SizedBox(
                       width: 10.w,

@@ -38,6 +38,9 @@ import 'package:waseet/features/user/presentation/profile_info/view/profile_info
 import 'package:waseet/features/user/presentation/register/register.dart';
 import 'package:waseet/features/user/presentation/splash/view/splash_page.dart';
 import 'package:waseet/features/user/presentation/subscriptions/subscriptions.dart';
+import 'package:waseet/features/developer_real_estate/presentation/projects/view/developer_projects_page.dart';
+import 'package:waseet/features/developer_real_estate/presentation/project_details/view/project_details_page.dart';
+import 'package:waseet/features/developer_real_estate/presentation/unit_details/view/unit_details_page.dart';
 import 'package:waseet/res/enums/tahalf_type.dart';
 import 'package:waseet/router/screens.dart';
 
@@ -229,6 +232,37 @@ class AppRouter {
             ad: adId,
             adId: int.tryParse(id ?? ''),
           );
+        },
+      ),
+      // Developer Real Estate routes
+      GoRoute(
+        name: Screens.developerProjects.name,
+        path: Screens.developerProjects.path,
+        builder: (context, state) {
+          // Expect optional extras via state.extra (e.g. filters)
+          final extra = state.extra as Map<String, dynamic>?;
+          return DeveloperProjectsPage(extra: extra);
+        },
+      ),
+      GoRoute(
+        name: Screens.developerProjectDetails.name,
+        path: Screens.developerProjectDetails.path,
+        builder: (context, state) {
+          // projectId passed via state.extra as {'projectId': int}
+          final extra = state.extra as Map<String, dynamic>?;
+          final projectId = extra?['projectId'] as int?;
+          return ProjectDetailsPage(projectId: projectId);
+        },
+      ),
+      GoRoute(
+        name: Screens.developerUnitDetails.name,
+        path: Screens.developerUnitDetails.path,
+        builder: (context, state) {
+          // unitId passed via state.extra as {'unitId': int, 'projectId': int?}
+          final extra = state.extra as Map<String, dynamic>?;
+          final unitId = extra?['unitId'] as int?;
+          final projectId = extra?['projectId'] as int?;
+          return UnitDetailsPage(unitId: unitId, projectId: projectId);
         },
       ),
       GoRoute(

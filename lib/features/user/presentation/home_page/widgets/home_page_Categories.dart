@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:waseet/constants/constants.dart';
 import 'package:waseet/features/user/presentation/home_page/widgets/category_item.dart';
+import 'package:waseet/res/assets/assets.gen.dart';
 import 'package:waseet/router/screens.dart';
 
 class HomepageCategories extends StatelessWidget {
@@ -17,9 +18,11 @@ class HomepageCategories extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 20).r,
       child: Column(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 12).r,
+            child: Row(
+              children: [
               if (isWasset == false)
                 CategoryItem(
                   onTap: () {
@@ -34,6 +37,13 @@ class HomepageCategories extends StatelessWidget {
                 },
                 text: 'وسطاء ذهبيين',
                 image: Constants.goldenBrokers,
+              ),
+              CategoryItem(
+                onTap: () {
+                  context.pushNamed(Screens.developerProjects.name);
+                },
+                text: 'مشاريع المطورين',
+                image: Assets.icons.apartment.keyName,
               ),
               if (isWasset == true)
                 CategoryItem(
@@ -67,7 +77,8 @@ class HomepageCategories extends StatelessWidget {
                   text: 'تحالف الوسطاء',
                   image: Constants.myAlliances,
                 ),
-            ],
+              ],
+            ),
           ),
         ],
       ),

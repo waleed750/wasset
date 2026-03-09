@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:waseet/constants/constants.dart';
+import 'package:waseet/common_widgets/adaptive_image.dart';
 import 'package:waseet/features/brokers/domain/entities/connection_request_entity.dart';
 import 'package:waseet/features/brokers/presentation/connection_request/connection_request.dart';
 import 'package:waseet/res/assets/assets.gen.dart';
@@ -102,7 +103,7 @@ class ConnectionWithClient extends StatelessWidget {
                       CircleAvatar(
                         radius: 25.r,
                         backgroundImage:
-                            image != null ? NetworkImage(image!) : null,
+                            image != null ? adaptiveImageProvider(image) : null,
                       ),
                       if (isActive)
                         Positioned(

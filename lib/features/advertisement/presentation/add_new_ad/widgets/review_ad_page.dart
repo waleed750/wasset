@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:waseet/app/bloc/app_bloc.dart';
+import 'package:waseet/common_widgets/adaptive_image.dart';
 import 'package:waseet/common_widgets/broker_item_icon.dart';
 import 'package:waseet/common_widgets/images_banner.dart';
 import 'package:waseet/features/advertisement/presentation/add_new_ad/cubit/cubit.dart';
@@ -247,48 +248,21 @@ class ReviewAdPage extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      CircleAvatar(
+                        CircleAvatar(
                         radius: 20,
-                        backgroundImage: context
-                                    .read<AppBloc>()
-                                    .state
-                                    .user
-                                    ?.profile
-                                    ?.profileImage !=
-                                null
-                            ? NetworkImage(
-                                context
-                                        .read<AppBloc>()
-                                        .state
-                                        .user
-                                        ?.profile
-                                        ?.profileImage
-                                        .toString() ??
-                                    '',
-                              )
-                            : null,
-                        backgroundColor: context
-                                    .read<AppBloc>()
-                                    .state
-                                    .user
-                                    ?.profile
-                                    ?.profileImage ==
-                                null
-                            ? AppColors.primaryColor
-                            : null,
-                        child: context
-                                    .read<AppBloc>()
-                                    .state
-                                    .user
-                                    ?.profile
-                                    ?.profileImage ==
-                                null
-                            ? const Icon(
-                                Icons.person,
-                                color: Colors.white,
-                              )
-                            : null,
-                      ),
+                        backgroundImage: context.read<AppBloc>().state.user?.profile?.profileImage != null
+                          ? adaptiveImageProvider(context.read<AppBloc>().state.user?.profile?.profileImage)
+                          : null,
+                        backgroundColor: context.read<AppBloc>().state.user?.profile?.profileImage == null
+                          ? AppColors.primaryColor
+                          : null,
+                        child: context.read<AppBloc>().state.user?.profile?.profileImage == null
+                          ? const Icon(
+                            Icons.person,
+                            color: Colors.white,
+                            )
+                          : null,
+                        ),
                       const SizedBox(width: 10),
                       Text(
                         state.addAdRequest.advertiserName,

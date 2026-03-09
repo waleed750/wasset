@@ -11,6 +11,7 @@ import 'package:waseet/res/assets/assets.gen.dart';
 import 'package:waseet/res/enums/broker_type.dart';
 import 'package:waseet/res/helper_method.dart';
 import 'package:waseet/res/res.dart';
+import 'package:waseet/common_widgets/adaptive_image.dart';
 import 'package:waseet/router/screens.dart';
 
 /// {@template my_personal_office_body}
@@ -41,10 +42,10 @@ class MyPersonalOfficeBody extends StatelessWidget {
                           child: Container(
                             // height: 150,
                             child: state.wassetProfile?.profileImage != null
-                                ? Image.network(
-                                    state.wassetProfile?.profileImage ?? '',
-                                    fit: BoxFit.cover,
-                                  )
+                                  ? AdaptiveImage(
+                                      path: state.wassetProfile?.profileImage ?? '',
+                                      fit: BoxFit.cover,
+                                    )
                                 : DecoratedBox(
                                     decoration: BoxDecoration(
                                       gradient: LinearGradient(
@@ -69,12 +70,9 @@ class MyPersonalOfficeBody extends StatelessWidget {
                         child: CircleAvatar(
                           radius: 50.r,
                           backgroundColor: AppColors.primaryColor,
-                          backgroundImage:
-                              state.wassetProfile?.profileImage != null
-                                  ? NetworkImage(
-                                      state.wassetProfile?.profileImage ?? '',
-                                    )
-                                  : null,
+                            backgroundImage: state.wassetProfile?.profileImage != null
+                              ? adaptiveImageProvider(state.wassetProfile?.profileImage)
+                              : null,
                           child: state.wassetProfile?.profileImage != null
                               ? null
                               : Assets.icons.user.svg(
@@ -627,8 +625,8 @@ class MyPersonalOfficeBody extends StatelessWidget {
                                                   width: double.infinity,
                                                   fit: BoxFit.cover,
                                                 )
-                                              : Image.network(
-                                                  ad.images?.first ?? '',
+                                              : AdaptiveImage(
+                                                  path: ad.images?.first ?? '',
                                                   width: double.infinity,
                                                   fit: BoxFit.cover,
                                                 ),
