@@ -100,6 +100,7 @@ class ProfileInfoBody extends StatelessWidget {
                                         );
 
                                         if (picked != null) {
+                                          if (!context.mounted) return;
                                           final file = File(picked.path);
                                           await context
                                               .read<ProfileInfoCubit>()
@@ -232,7 +233,7 @@ class ProfileInfoBody extends StatelessWidget {
                                 .read<ProfileInfoCubit>()
                                 .setSelectedCategory(value!);
                           },
-                          initialValue: state.selectedCategory ??
+                            value: state.selectedCategory ??
                               state.categories.singleWhere(
                                 (element) =>
                                     element.id ==
@@ -321,7 +322,7 @@ class ProfileInfoBody extends StatelessWidget {
                                 .read<ProfileInfoCubit>()
                                 .setBrokerType(value!);
                           },
-                          initialValue: user?.officeType?.toBrokerType ??
+                            value: user?.officeType?.toBrokerType ??
                               BrokerType.wasset,
                         ),
                         if (state.officeType == BrokerType.office) ...[

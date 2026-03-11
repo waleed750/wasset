@@ -29,7 +29,7 @@ class _ImagesBannerState extends State<ImagesBanner> {
       onTap: () {
         if (widget.showFullScreen) {
           Navigator.of(context).push(
-            MaterialPageRoute(
+            MaterialPageRoute<void>(
               builder: (context) {
                 return Scaffold(
                   appBar: const WassetAppBar(
@@ -80,7 +80,7 @@ class _ImagesBannerState extends State<ImagesBanner> {
             right: 0,
             child: DecoratedBox(
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.6),
+                color: Colors.black.withValues(alpha: 0.6),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,

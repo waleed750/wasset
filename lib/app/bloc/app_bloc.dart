@@ -48,7 +48,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
               await FirebaseMessaging.instance.requestPermission();
               apns = await FirebaseMessaging.instance.getAPNSToken();
               if (apns == null) {
-                await Future.delayed(const Duration(seconds: 3));
+                await Future<void>.delayed(const Duration(seconds: 3));
                 apns = await FirebaseMessaging.instance.getAPNSToken();
               }
             }
@@ -66,7 +66,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
             state.copyWith(
               user: user.data,
               status: AppStatus.authenticated,
-              isWasset: user.data?.type == UserType.wasset ? true : false,
+              isWasset: user.data?.type == UserType.wasset,
             ),
           );
         } else {
