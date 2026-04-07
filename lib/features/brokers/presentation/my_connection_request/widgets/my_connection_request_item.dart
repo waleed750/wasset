@@ -14,7 +14,7 @@ class ConnectionRequestItem extends StatelessWidget {
     super.key,
     required this.connectionRequest,
     required this.onFavTap,
-    this.onCallTap,
+    this.onCallTap, 
   });
 
   final ConnectionRequestEntity connectionRequest;
