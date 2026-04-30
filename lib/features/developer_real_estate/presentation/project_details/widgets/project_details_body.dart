@@ -3,18 +3,24 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:waseet/common_widgets/images_banner.dart';
 import 'package:waseet/features/developer_real_estate/domain/entities/developer_project_entity.dart';
-import 'package:waseet/constants/constants.dart';
 import 'package:waseet/features/developer_real_estate/domain/entities/developer_unit_entity.dart';
 import 'package:waseet/features/developer_real_estate/data/models/developer_unit_model.dart';
 import 'package:waseet/features/developer_real_estate/presentation/project_details/cubit/cubit.dart';
+import 'package:waseet/features/developer_real_estate/presentation/widgets/financing_selector.dart';
 import 'package:waseet/features/user/presentation/register/widgets/wasset_button.dart';
 import 'package:waseet/res/res.dart';
 import 'package:waseet/res/helper_method.dart';
 import 'package:go_router/go_router.dart';
 import 'package:waseet/router/screens.dart';
 
-class ProjectDetailsBody extends StatelessWidget {
+class ProjectDetailsBody extends StatefulWidget {
   const ProjectDetailsBody({super.key});
+
+  @override
+  State<ProjectDetailsBody> createState() => _ProjectDetailsBodyState();
+}
+
+class _ProjectDetailsBodyState extends State<ProjectDetailsBody> {
 
   @override
   Widget build(BuildContext context) {
@@ -211,30 +217,30 @@ class ProjectDetailsBody extends StatelessWidget {
                 ],
 
                 // Financing Options
-                if (project.financingOptions != null &&
-                    project.financingOptions!.isNotEmpty) ...[
-                  const _SectionTitle(title: 'خيارات التمويل'),
-                  SizedBox(height: 8.h),
+                const _SectionTitle(title: 'خيارات التمويل'),
+                SizedBox(height: 12.h),
+                if (project.financingOptions != null && project.financingOptions!.isNotEmpty)
+                  FinancingSelector(options: project.financingOptions)
+                else
                   Container(
                     width: double.infinity,
                     padding: EdgeInsets.all(12.r),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10).r,
-                      border: Border.all(
-                        color: Colors.grey.withOpacity(0.5),
-                      ),
+                      color: Colors.grey.shade100,
+                      border: Border.all(color: Colors.grey.shade300),
                     ),
-                    child: Text(
-                      project.financingOptions!.join('\n• '),
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        color: Colors.black87,
-                        height: 1.5,
+                    child: Center(
+                      child: Text(
+                        'لا توجد خيارات تمويل',
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          color: Colors.grey.shade600,
+                        ),
                       ),
                     ),
                   ),
-                  SizedBox(height: 16.h),
-                ],
+                SizedBox(height: 16.h),
 
                 // Units Preview
                 if (project.units != null && project.units!.isNotEmpty) ...[
@@ -431,6 +437,7 @@ class ProjectDetailsBody extends StatelessWidget {
     }
     return price.toStringAsFixed(0);
   }
+
 }
 
 class _SectionTitle extends StatelessWidget {
@@ -499,3 +506,4 @@ class _InfoRow extends StatelessWidget {
     );
   }
 }
+

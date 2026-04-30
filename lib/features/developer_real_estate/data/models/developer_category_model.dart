@@ -1,5 +1,14 @@
 import 'package:waseet/features/developer_real_estate/domain/entities/developer_category_entity.dart';
 
+// Safe numeric parsing helper
+int? _safeParseInt(dynamic value) {
+  if (value == null) return null;
+  if (value is int) return value;
+  if (value is double) return value.toInt();
+  if (value is String) return int.tryParse(value);
+  return null;
+}
+
 class DeveloperCategoryModel {
 
   DeveloperCategoryModel({
@@ -12,7 +21,7 @@ class DeveloperCategoryModel {
     return DeveloperCategoryModel(
       key: json['key'] as String,
       label: json['label'] as String,
-      projectCount: json['project_count'] as int?,
+      projectCount: _safeParseInt(json['project_count']),
     );
   }
   final String key;

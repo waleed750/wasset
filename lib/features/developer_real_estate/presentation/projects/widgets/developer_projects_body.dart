@@ -5,6 +5,7 @@ import 'package:waseet/common_widgets/no_items.dart';
 import 'package:waseet/common_widgets/skeleton.dart';
 import 'package:waseet/constants/constants.dart';
 import 'package:waseet/features/developer_real_estate/presentation/projects/cubit/cubit.dart';
+import 'package:waseet/features/developer_real_estate/presentation/projects/widgets/city_filtering_section.dart';
 import 'package:waseet/features/developer_real_estate/presentation/projects/widgets/project_card.dart';
 
 class DeveloperProjectsBody extends StatefulWidget {
@@ -46,9 +47,9 @@ class _DeveloperProjectsBodyState extends State<DeveloperProjectsBody> {
             // Categories horizontal list
             if (state.categories.isNotEmpty)
               Padding(
-                padding: EdgeInsets.symmetric(vertical: 12.h),
+                padding: EdgeInsets.symmetric(vertical: 5.h),
                 child: SizedBox(
-                  height: 56.h,
+                  height: 40.h,
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     padding: EdgeInsets.symmetric(horizontal: 12.w),
@@ -113,6 +114,9 @@ class _DeveloperProjectsBodyState extends State<DeveloperProjectsBody> {
                 ),
               ),
 
+            // City filter section (below categories)
+            const CityFilteringSection(),
+            
             // Loading state
             if (state.status == DeveloperProjectsStatus.loading)
               Expanded(

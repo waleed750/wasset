@@ -9,6 +9,7 @@ import 'package:waseet/features/user/presentation/home_page/widgets/client_type.
 import 'package:waseet/features/user/presentation/home_page/widgets/contact_with_us.dart';
 import 'package:waseet/features/user/presentation/home_page/widgets/custom_app_bar.dart';
 import 'package:waseet/features/user/presentation/home_page/widgets/custom_slider.dart';
+import 'package:waseet/features/user/presentation/home_page/widgets/developer_projects_featured_card.dart';
 import 'package:waseet/features/user/presentation/home_page/widgets/home_broker_button.dart';
 import 'package:waseet/features/user/presentation/home_page/widgets/home_page_categories.dart';
 import 'package:waseet/features/user/presentation/register/widgets/wasset_button.dart';
@@ -45,6 +46,10 @@ class MainPage extends StatelessWidget {
                       height: 16.h,
                     ),
                     const ContactWithUs(),
+                    SizedBox(
+                      height: 16.h,
+                    ),
+                    const DeveloperProjectsFeaturedCard(),
                     SizedBox(
                       height: 16.h,
                     ),

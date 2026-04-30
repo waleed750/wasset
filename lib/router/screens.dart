@@ -34,6 +34,7 @@ enum Screens {
   aboutUs,
   complaint,
   policiesAndProvisions,
+  developerRealEstateEntry,
   developerProjects,
   developerProjectDetails,
   developerUnitDetails,

@@ -1,3 +1,5 @@
+import 'package:waseet/features/developer_real_estate/domain/entities/developer_info_entity.dart';
+
 class DeveloperUnitEntity {
 
   DeveloperUnitEntity({
@@ -27,6 +29,7 @@ class DeveloperUnitEntity {
     this.projectDeveloperName,
     this.projectDeveloperLogo,
     this.financingOptions,
+    this.developerInfo,
   });
   final int id;
   final String name;
@@ -62,4 +65,5 @@ class DeveloperUnitEntity {
   final String? projectDeveloperLogo;
   
   final List<dynamic>? financingOptions;
+  final DeveloperInfoEntity? developerInfo;
 }

@@ -4,6 +4,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:waseet/common_widgets/images_banner.dart';
 import 'package:waseet/features/developer_real_estate/domain/entities/developer_unit_entity.dart';
 import 'package:waseet/features/developer_real_estate/presentation/unit_details/cubit/cubit.dart';
+import 'package:waseet/features/developer_real_estate/presentation/unit_details/widgets/developer_info_section.dart';
+import 'package:waseet/features/developer_real_estate/presentation/widgets/financing_selector.dart';
 import 'package:waseet/features/user/presentation/register/widgets/wasset_button.dart';
 import 'package:waseet/res/res.dart';
 
@@ -368,30 +370,10 @@ class UnitDetailsBody extends StatelessWidget {
                 ],
 
                 // Financing Options
-                if (unit.financingOptions != null &&
-                    unit.financingOptions!.isNotEmpty) ...[
-                  const _SectionTitle(title: 'خيارات التمويل'),
-                  SizedBox(height: 8.h),
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.all(12.r),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10).r,
-                      border: Border.all(
-                        color: Colors.grey.withOpacity(0.5),
-                      ),
-                    ),
-                    child: Text(
-                      unit.financingOptions!.join('\n• '),
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        color: Colors.black87,
-                        height: 1.5,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 16.h),
-                ],
+                const _SectionTitle(title: 'خيارات التمويل'),
+                SizedBox(height: 12.h),
+                FinancingSelector(options: unit.financingOptions),
+                SizedBox(height: 16.h),
 
                 // Location Map CTA
                 if (unit.projectLocationUrl != null &&
@@ -425,6 +407,12 @@ class UnitDetailsBody extends StatelessWidget {
                     },
                   ),
                   SizedBox(height: 12.h),
+                ],
+
+                // Developer Info Section
+                if (unit.developerInfo != null) ...[
+                  DeveloperInfoSection(developer: unit.developerInfo!),
+                  SizedBox(height: 20.h),
                 ],
 
                 SizedBox(height: 20.h),

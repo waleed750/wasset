@@ -40,7 +40,7 @@ class HomepageCategories extends StatelessWidget {
               ),
               CategoryItem(
                 onTap: () {
-                  context.pushNamed(Screens.developerProjects.name);
+                  context.pushNamed(Screens.developerRealEstateEntry.name);
                 },
                 text: 'مشاريع المطورين',
                 image: Assets.icons.apartment.keyName,

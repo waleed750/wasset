@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:waseet/features/developer_real_estate/domain/entities/developer_category_entity.dart';
+import 'package:waseet/features/developer_real_estate/domain/entities/developer_city_entity.dart';
 import 'package:waseet/features/developer_real_estate/domain/entities/developer_project_entity.dart';
 import 'package:waseet/features/developer_real_estate/domain/repositories/developer_real_estate_repository.dart';
 import 'package:waseet/res/resource.dart';
@@ -23,53 +24,65 @@ class DeveloperProjectsCubit extends Cubit<DeveloperProjectsState> {
     try {
       emit(state.copyWith(status: DeveloperProjectsStatus.loading));
 
-      // Fetch categories
+      // Fetch categories first (required)
       final categoriesResult = await _repository.getCategories();
       
-      if (categoriesResult is ResourceSuccess) {
-        final categories = categoriesResult.data ?? [];
-        
-        // Add "الكل" option at the beginning
-        final allCategories = [
-          DeveloperCategoryEntity(
-            key: 'all',
-            label: 'الكل',
+      if (categoriesResult is! ResourceSuccess) {
+        emit(
+          state.copyWith(
+            status: DeveloperProjectsStatus.error,
+            errorMessage: categoriesResult.message ?? 'فشل جلب الفئات',
           ),
-          ...categories,
-        ];
+        );
+        return;
+      }
 
-        // Fetch projects (no category filter = all projects)
-        final projectsResult = await _repository.getProjects();
+      // Fetch cities (optional - won't block if fails)
+      final citiesResult = await _repository.getCities();
+      final cities = citiesResult is ResourceSuccess 
+          ? citiesResult.data ?? <DeveloperCityEntity>[] 
+          : <DeveloperCityEntity>[];
+      
+      // Debug: log cities count
+      print('[DEBUG] Cities loaded: ${cities.length} cities');
+      for (final city in cities) {
+        print('[DEBUG] City: id=${city.id}, name=${city.name}');
+      }
 
-        if (projectsResult is ResourceSuccess) {
-          final paginatedResult = projectsResult.data!;
+      final categories = categoriesResult.data ?? [];
+      
+      // Add "الكل" option at the beginning for categories
+      final allCategories = [
+        DeveloperCategoryEntity(
+          key: 'all',
+          label: 'الكل',
+        ),
+        ...categories,
+      ];
 
-          emit(
-            state.copyWith(
-              status: paginatedResult.data.isEmpty
-                  ? DeveloperProjectsStatus.loaded
-                  : DeveloperProjectsStatus.loaded,
-              categories: allCategories,
-              projects: paginatedResult.data,
-              currentPage: paginatedResult.currentPage,
-              lastPage: paginatedResult.lastPage,
-              hasMore: paginatedResult.hasMore,
-              selectedCategory: 'all',
-            ),
-          );
-        } else {
-          emit(
-            state.copyWith(
-              status: DeveloperProjectsStatus.error,
-              errorMessage: projectsResult.message ?? 'حدث خطأ ما',
-            ),
-          );
-        }
+      // Fetch projects (no filter = all projects)
+      final projectsResult = await _repository.getProjects();
+
+      if (projectsResult is ResourceSuccess) {
+        final paginatedResult = projectsResult.data!;
+
+        emit(
+          state.copyWith(
+            status: DeveloperProjectsStatus.loaded,
+            categories: allCategories,
+            cities: cities,
+            projects: paginatedResult.data,
+            currentPage: paginatedResult.currentPage,
+            lastPage: paginatedResult.lastPage,
+            hasMore: paginatedResult.hasMore,
+            selectedCategory: 'all',
+          ),
+        );
       } else {
         emit(
           state.copyWith(
             status: DeveloperProjectsStatus.error,
-            errorMessage: categoriesResult.message ?? 'حدث خطأ ما',
+            errorMessage: projectsResult.message ?? 'فشل جلب المشاريع',
           ),
         );
       }
@@ -94,9 +107,10 @@ class DeveloperProjectsCubit extends Cubit<DeveloperProjectsState> {
         ),
       );
 
-      // Fetch projects with category filter
+      // Fetch projects with category and city filters
       final result = await _repository.getProjects(
         category: categoryKey == 'all' ? null : categoryKey,
+        cityId: state.selectedCityId,
       );
 
       if (result is ResourceSuccess) {
@@ -143,6 +157,7 @@ class DeveloperProjectsCubit extends Cubit<DeveloperProjectsState> {
       final result = await _repository.getProjects(
         page: nextPage,
         category: state.selectedCategory == 'all' ? null : state.selectedCategory,
+        cityId: state.selectedCityId,
       );
 
       if (result is ResourceSuccess) {
@@ -174,6 +189,55 @@ class DeveloperProjectsCubit extends Cubit<DeveloperProjectsState> {
       }
     } catch (e) {
       emit(state.copyWith(status: DeveloperProjectsStatus.loaded));
+    }
+  }
+
+  Future<void> selectCity(int? cityId) async {
+    if (state.selectedCityId == cityId) return;
+
+    try {
+      emit(
+        state.copyWith(
+          status: DeveloperProjectsStatus.loading,
+          selectedCityId: cityId,
+        ),
+      );
+
+      // Fetch projects with category and city filters
+      final result = await _repository.getProjects(
+        category: state.selectedCategory == 'all' ? null : state.selectedCategory,
+        cityId: cityId,
+      );
+
+      if (result is ResourceSuccess) {
+        final paginatedResult = result.data!;
+        
+        emit(
+          state.copyWith(
+            status: paginatedResult.data.isEmpty
+                ? DeveloperProjectsStatus.loaded
+                : DeveloperProjectsStatus.loaded,
+            projects: paginatedResult.data,
+            currentPage: paginatedResult.currentPage,
+            lastPage: paginatedResult.lastPage,
+            hasMore: paginatedResult.hasMore,
+          ),
+        );
+      } else {
+        emit(
+          state.copyWith(
+            status: DeveloperProjectsStatus.error,
+            errorMessage: result.message ?? 'حدث خطأ ما',
+          ),
+        );
+      }
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: DeveloperProjectsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 }

@@ -1,5 +1,22 @@
 import 'package:waseet/features/developer_real_estate/domain/entities/developer_project_entity.dart';
 
+// Safe numeric parsing helpers
+int? _safeParseInt(dynamic value) {
+  if (value == null) return null;
+  if (value is int) return value;
+  if (value is double) return value.toInt();
+  if (value is String) return int.tryParse(value);
+  return null;
+}
+
+double? _safeParseDouble(dynamic value) {
+  if (value == null) return null;
+  if (value is double) return value;
+  if (value is int) return value.toDouble();
+  if (value is String) return double.tryParse(value);
+  return null;
+}
+
 class DeveloperProjectModel {
 
   DeveloperProjectModel({
@@ -43,7 +60,7 @@ class DeveloperProjectModel {
     }
 
     return DeveloperProjectModel(
-      id: json['id'] as int,
+      id: _safeParseInt(json['id']) ?? 0,
       name: json['name'] as String,
       description: json['description'] as String?,
       cover: json['cover'] as String?,
@@ -54,17 +71,17 @@ class DeveloperProjectModel {
       neighborhood: location?['neighborhood'] as String?,
       mapUrl: location?['map_url'] as String?,
       
-      // Flatten price_range
-      priceMin: (priceRange?['min'] as num?)?.toDouble(),
-      priceMax: (priceRange?['max'] as num?)?.toDouble(),
-      unitStartingFrom: (priceRange?['unit_starting_from'] as num?)?.toDouble(),
+      // Flatten price_range with safe parsing
+      priceMin: _safeParseDouble(priceRange?['min']),
+      priceMax: _safeParseDouble(priceRange?['max']),
+      unitStartingFrom: _safeParseDouble(priceRange?['unit_starting_from']),
       
-      commissionPercentage: (json['commission_percentage'] as num?)?.toDouble(),
+      commissionPercentage: _safeParseDouble(json['commission_percentage']),
       createdSince: json['created_since'] as String?,
       contactPhone: json['contact_phone'] as String?,
       
-      // Flatten developer
-      developerId: developer?['id'] as int?,
+      // Flatten developer with safe parsing
+      developerId: _safeParseInt(developer?['id']),
       developerName: developer?['name'] as String?,
       developerLogo: developer?['logo'] as String?,
       developerDescription: developer?['description'] as String?,

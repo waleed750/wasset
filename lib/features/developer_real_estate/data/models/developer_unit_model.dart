@@ -1,4 +1,22 @@
+import 'package:waseet/features/developer_real_estate/data/models/developer_info_model.dart';
 import 'package:waseet/features/developer_real_estate/domain/entities/developer_unit_entity.dart';
+
+// Safe numeric parsing helpers
+int? _safeParseInt(dynamic value) {
+  if (value == null) return null;
+  if (value is int) return value;
+  if (value is double) return value.toInt();
+  if (value is String) return int.tryParse(value);
+  return null;
+}
+
+double? _safeParseDouble(dynamic value) {
+  if (value == null) return null;
+  if (value is double) return value;
+  if (value is int) return value.toDouble();
+  if (value is String) return double.tryParse(value);
+  return null;
+}
 
 class DeveloperUnitModel {
 
@@ -29,6 +47,7 @@ class DeveloperUnitModel {
     this.projectDeveloperName,
     this.projectDeveloperLogo,
     this.financingOptions,
+    this.developerInfo,
   });
 
   factory DeveloperUnitModel.fromJson(Map<String, dynamic> json) {
@@ -36,6 +55,9 @@ class DeveloperUnitModel {
     final unitType = json['unit_type'] as Map<String, dynamic>?;
     final project = json['project'] as Map<String, dynamic>?;
     final projectDeveloper = project?['developer'] as Map<String, dynamic>?;
+    final developerInfo = projectDeveloper != null
+        ? DeveloperInfoModel.fromJson(projectDeveloper)
+        : null;
     
     // Parse images list safely
     List<String>? images;
@@ -46,19 +68,19 @@ class DeveloperUnitModel {
     }
 
     return DeveloperUnitModel(
-      id: json['id'] as int,
+      id: _safeParseInt(json['id']) ?? 0,
       name: json['name'] as String,
       unitCode: json['unit_code'] as String?,
-      area: (json['area'] as num?)?.toDouble(),
-      price: (json['price'] as num?)?.toDouble(),
+      area: _safeParseDouble(json['area']),
+      price: _safeParseDouble(json['price']),
       
       // Flatten unit_type
       unitTypeKey: unitType?['key'] as String?,
       unitTypeLabel: unitType?['label'] as String?,
       
-      roomsCount: json['rooms_count'] as int?,
-      bathroomsCount: json['bathrooms_count'] as int?,
-      hallsCount: json['halls_count'] as int?,
+      roomsCount: _safeParseInt(json['rooms_count']),
+      bathroomsCount: _safeParseInt(json['bathrooms_count']),
+      hallsCount: _safeParseInt(json['halls_count']),
       others: json['others'] as String?,
       availabilityStatus: json['availability_status'] as String?,
       description: json['description'] as String?,
@@ -66,20 +88,21 @@ class DeveloperUnitModel {
       images: images,
       
       // Flatten project info
-      projectId: project?['id'] as int?,
+      projectId: _safeParseInt(project?['id']),
       projectName: project?['name'] as String?,
       projectCity: project?['city'] as String?,
       projectNeighborhood: project?['neighborhood'] as String?,
       projectLocationUrl: project?['location_url'] as String?,
       projectContactPhone: project?['contact_phone'] as String?,
-      projectCommission: (project?['commission'] as num?)?.toDouble(),
+      projectCommission: _safeParseDouble(project?['commission']),
       
       // Flatten project.developer
-      projectDeveloperId: projectDeveloper?['id'] as int?,
+      projectDeveloperId: _safeParseInt(projectDeveloper?['id']),
       projectDeveloperName: projectDeveloper?['name'] as String?,
       projectDeveloperLogo: projectDeveloper?['logo'] as String?,
       
       financingOptions: json['financing_options'] as List<dynamic>?,
+      developerInfo: developerInfo,
     );
   }
   final int id;
@@ -116,6 +139,7 @@ class DeveloperUnitModel {
   final String? projectDeveloperLogo;
   
   final List<dynamic>? financingOptions;
+  final DeveloperInfoModel? developerInfo;
 
   DeveloperUnitEntity toEntity() {
     return DeveloperUnitEntity(
@@ -145,6 +169,7 @@ class DeveloperUnitModel {
       projectDeveloperName: projectDeveloperName,
       projectDeveloperLogo: projectDeveloperLogo,
       financingOptions: financingOptions,
+      developerInfo: developerInfo?.toEntity(),
     );
   }
 }

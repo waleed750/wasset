@@ -1,8 +1,10 @@
 import 'package:waseet/features/developer_real_estate/data/models/developer_category_response.dart';
+import 'package:waseet/features/developer_real_estate/data/models/developer_city_response.dart';
 import 'package:waseet/features/developer_real_estate/data/models/developer_project_response.dart';
 import 'package:waseet/features/developer_real_estate/data/models/developer_project_details_response.dart';
 import 'package:waseet/features/developer_real_estate/data/models/developer_unit_response.dart';
 import 'package:waseet/features/developer_real_estate/domain/entities/developer_category_entity.dart';
+import 'package:waseet/features/developer_real_estate/domain/entities/developer_city_entity.dart';
 import 'package:waseet/features/developer_real_estate/domain/entities/developer_project_entity.dart';
 import 'package:waseet/features/developer_real_estate/domain/entities/developer_unit_entity.dart';
 import 'package:waseet/features/developer_real_estate/domain/entities/paginated_result.dart';
@@ -36,14 +38,37 @@ class DeveloperRealEstateDatasource {
     }
   }
 
+  Future<Resource<List<DeveloperCityEntity>?>> getCities() async {
+    try {
+      final response = await _apiService.get<Map<String, dynamic>>(
+        '/developer-projects/city-categories',
+      );
+      final cityResponse = DeveloperCityResponse.fromMap(response!);
+      if (cityResponse.data != null) {
+        return Resource.success(
+          cityResponse.data!.map((e) => e.toEntity()).toList(),
+        );
+      }
+      return Resource.error(
+        cityResponse.message ?? 'error',
+        null,
+        cityResponse.errors,
+      );
+    } catch (e) {
+      return Resource.error(e.toString());
+    }
+  }
+
   Future<Resource<PaginatedResult<DeveloperProjectEntity>?>> getProjects({
     int page = 1,
     String? category,
+    int? cityId,
   }) async {
     try {
       final queryParams = <String, dynamic>{
         'page': page,
         if (category != null && category.isNotEmpty) 'category': category,
+        if (cityId != null) 'city_id': cityId,
       };
 
       final response = await _apiService.get<Map<String, dynamic>>(

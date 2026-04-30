@@ -13,7 +13,9 @@ class DeveloperProjectsState extends Equatable {
     this.status = DeveloperProjectsStatus.initial,
     this.projects = const [],
     this.categories = const [],
+    this.cities = const [],
     this.selectedCategory,
+    this.selectedCityId,
     this.errorMessage = '',
     this.currentPage = 1,
     this.lastPage = 1,
@@ -23,7 +25,9 @@ class DeveloperProjectsState extends Equatable {
   final DeveloperProjectsStatus status;
   final List<DeveloperProjectEntity> projects;
   final List<DeveloperCategoryEntity> categories;
+  final List<DeveloperCityEntity> cities;
   final String? selectedCategory;
+  final int? selectedCityId;
   final String errorMessage;
   final int currentPage;
   final int lastPage;
@@ -34,7 +38,9 @@ class DeveloperProjectsState extends Equatable {
         status,
         projects,
         categories,
+        cities,
         selectedCategory,
+        selectedCityId,
         errorMessage,
         currentPage,
         lastPage,
@@ -45,7 +51,9 @@ class DeveloperProjectsState extends Equatable {
     DeveloperProjectsStatus? status,
     List<DeveloperProjectEntity>? projects,
     List<DeveloperCategoryEntity>? categories,
+    List<DeveloperCityEntity>? cities,
     String? selectedCategory,
+    int? selectedCityId,
     String? errorMessage,
     int? currentPage,
     int? lastPage,
@@ -55,7 +63,9 @@ class DeveloperProjectsState extends Equatable {
       status: status ?? this.status,
       projects: projects ?? this.projects,
       categories: categories ?? this.categories,
+      cities: cities ?? this.cities,
       selectedCategory: selectedCategory ?? this.selectedCategory,
+      selectedCityId: selectedCityId ?? this.selectedCityId,
       errorMessage: errorMessage ?? this.errorMessage,
       currentPage: currentPage ?? this.currentPage,
       lastPage: lastPage ?? this.lastPage,

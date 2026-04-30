@@ -38,6 +38,7 @@ import 'package:waseet/features/user/presentation/profile_info/view/profile_info
 import 'package:waseet/features/user/presentation/register/register.dart';
 import 'package:waseet/features/user/presentation/splash/view/splash_page.dart';
 import 'package:waseet/features/user/presentation/subscriptions/subscriptions.dart';
+import 'package:waseet/features/developer_real_estate/presentation/entry/view/developer_real_estate_entry_page.dart';
 import 'package:waseet/features/developer_real_estate/presentation/projects/view/developer_projects_page.dart';
 import 'package:waseet/features/developer_real_estate/presentation/project_details/view/project_details_page.dart';
 import 'package:waseet/features/developer_real_estate/presentation/unit_details/view/unit_details_page.dart';
@@ -235,6 +236,13 @@ class AppRouter {
         },
       ),
       // Developer Real Estate routes
+      GoRoute(
+        name: Screens.developerRealEstateEntry.name,
+        path: Screens.developerRealEstateEntry.path,
+        builder: (context, state) {
+          return const DeveloperRealEstateEntryPage();
+        },
+      ),
       GoRoute(
         name: Screens.developerProjects.name,
         path: Screens.developerProjects.path,
