@@ -17,8 +17,49 @@ double? _safeParseDouble(dynamic value) {
   return null;
 }
 
-class DeveloperProjectModel {
+String? _safeParseString(dynamic value) {
+  if (value == null) return null;
+  final parsed = value.toString().trim();
+  return parsed.isEmpty ? null : parsed;
+}
 
+String? _extractImageUrl(dynamic value) {
+  if (value == null) return null;
+  if (value is String) return _safeParseString(value);
+  if (value is Map<String, dynamic>) {
+    for (final key in [
+      'url',
+      'full_url',
+      'file',
+      'path',
+      'image',
+      'cover',
+      'project_cover',
+      'main_image',
+      'cover_image',
+      'original_url',
+      'preview_url',
+      'src',
+    ]) {
+      final imageUrl = _extractImageUrl(value[key]);
+      if (imageUrl != null) return imageUrl;
+    }
+    return null;
+  }
+  return _safeParseString(value);
+}
+
+List<String>? _parseImages(dynamic value) {
+  if (value == null) return null;
+  if (value is List) {
+    final images = value.map(_extractImageUrl).whereType<String>().toList();
+    return images.isEmpty ? null : images;
+  }
+  final imageUrl = _extractImageUrl(value);
+  return imageUrl == null ? null : [imageUrl];
+}
+
+class DeveloperProjectModel {
   DeveloperProjectModel({
     required this.id,
     required this.name,
@@ -50,46 +91,52 @@ class DeveloperProjectModel {
     final priceRange = json['price_range'] as Map<String, dynamic>?;
     final developer = json['developer'] as Map<String, dynamic>?;
     final visitingTimes = json['visiting_times'] as Map<String, dynamic>?;
-    
-    // Parse images list safely
-    List<String>? images;
-    if (json['images'] != null) {
-      images = (json['images'] as List)
-          .map((e) => e.toString())
-          .toList();
-    }
+    // The list endpoint sends the main image as `project_cover`, while
+    // details uses `cover`; keep both shapes mapped to the entity cover.
+    final images = _parseImages(
+      json['images'] ??
+          json['media'] ??
+          json['attachments'] ??
+          json['attechments'],
+    );
+    final cover = _extractImageUrl(json['cover']) ??
+        _extractImageUrl(json['project_cover']) ??
+        _extractImageUrl(json['main_image']) ??
+        _extractImageUrl(json['cover_image']) ??
+        _extractImageUrl(json['image']) ??
+        images?.first;
 
     return DeveloperProjectModel(
       id: _safeParseInt(json['id']) ?? 0,
       name: json['name'] as String,
       description: json['description'] as String?,
-      cover: json['cover'] as String?,
+      cover: cover,
       images: images,
-      
+
       // Flatten location
       city: location?['city'] as String?,
       neighborhood: location?['neighborhood'] as String?,
       mapUrl: location?['map_url'] as String?,
-      
+
       // Flatten price_range with safe parsing
       priceMin: _safeParseDouble(priceRange?['min']),
       priceMax: _safeParseDouble(priceRange?['max']),
       unitStartingFrom: _safeParseDouble(priceRange?['unit_starting_from']),
-      
+
       commissionPercentage: _safeParseDouble(json['commission_percentage']),
       createdSince: json['created_since'] as String?,
       contactPhone: json['contact_phone'] as String?,
-      
+
       // Flatten developer with safe parsing
       developerId: _safeParseInt(developer?['id']),
       developerName: developer?['name'] as String?,
       developerLogo: developer?['logo'] as String?,
       developerDescription: developer?['description'] as String?,
-      
+
       // Flatten visiting_times
       visitingTimeFrom: visitingTimes?['from'] as String?,
       visitingTimeTo: visitingTimes?['to'] as String?,
-      
+
       units: json['units'] as List<dynamic>?,
       financingOptions: json['financing_options'] as List<dynamic>?,
     );
@@ -99,31 +146,31 @@ class DeveloperProjectModel {
   final String? description;
   final String? cover;
   final List<String>? images;
-  
+
   // Flattened location
   final String? city;
   final String? neighborhood;
   final String? mapUrl;
-  
+
   // Flattened price_range
   final double? priceMin;
   final double? priceMax;
   final double? unitStartingFrom;
-  
+
   final double? commissionPercentage;
   final String? createdSince;
   final String? contactPhone;
-  
+
   // Flattened developer
   final int? developerId;
   final String? developerName;
   final String? developerLogo;
   final String? developerDescription;
-  
+
   // Flattened visiting_times
   final String? visitingTimeFrom;
   final String? visitingTimeTo;
-  
+
   // Keep minimal for MVP
   final List<dynamic>? units;
   final List<dynamic>? financingOptions;

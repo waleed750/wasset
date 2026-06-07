@@ -1,27 +1,27 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:waseet/common_widgets/images_banner.dart';
 import 'package:waseet/features/developer_real_estate/domain/entities/developer_project_entity.dart';
 import 'package:waseet/res/res.dart';
-import 'package:waseet/common_widgets/adaptive_image.dart';
 import 'package:waseet/router/screens.dart';
 
 class ProjectCard extends StatelessWidget {
   const ProjectCard({
     super.key,
     required this.project,
+    required this.showBrokerCommission,
   });
 
   final DeveloperProjectEntity project;
+  final bool showBrokerCommission;
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl = project.cover ??
-        (project.images != null && project.images!.isNotEmpty
-            ? project.images!.first
-            : null);
+    final imageUrl = _firstValidImage([
+      project.cover,
+      ...?project.images,
+    ]);
 
     return GestureDetector(
       onTap: () {
@@ -82,53 +82,6 @@ class ProjectCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // developer logo + name overlay
-                  if (project.developerName != null ||
-                      project.developerLogo != null)
-                    PositionedDirectional(
-                      top: 10.h,
-                      start: 12.w,
-                      child: Row(
-                        children: [
-                          if (project.developerLogo != null)
-                            Container(
-                              width: 40.r,
-                              height: 40.r,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8).r,
-                              ),
-                              clipBehavior: Clip.hardEdge,
-                              child: AdaptiveImage(
-                                path: project.developerLogo,
-                                fit: BoxFit.cover,
-                                errorWidget: const SizedBox.shrink(),
-                              ),
-                            ),
-                          if (project.developerLogo != null)
-                            SizedBox(width: 8.w),
-                          if (project.developerName != null)
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 8.w,
-                                vertical: 6.h,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.9),
-                                borderRadius: BorderRadius.circular(20).r,
-                              ),
-                              child: Text(
-                                project.developerName!,
-                                style: TextStyle(
-                                  fontSize: 12.sp,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
                 ],
               ),
             ),
@@ -155,8 +108,7 @@ class ProjectCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      if (project.createdSince != null)
-                        SizedBox(width: 8.w),
+                      if (project.createdSince != null) SizedBox(width: 8.w),
                       if (project.createdSince != null)
                         Text(
                           project.createdSince!,
@@ -224,7 +176,8 @@ class ProjectCard extends StatelessWidget {
                       ),
 
                       // Commission pill
-                      if (project.commissionPercentage != null)
+                      if (showBrokerCommission &&
+                          project.commissionPercentage != null)
                         Container(
                           padding: EdgeInsets.symmetric(
                             horizontal: 10.w,
@@ -267,11 +220,21 @@ class ProjectCard extends StatelessWidget {
     );
   }
 
+  String? _firstValidImage(Iterable<String?> images) {
+    for (final image in images) {
+      final value = image?.trim();
+      if (value != null && value.isNotEmpty) {
+        return value;
+      }
+    }
+    return null;
+  }
+
   String _buildLocationText() {
     final parts = <String>[];
     if (project.city != null) parts.add(project.city!);
     if (project.neighborhood != null) parts.add(project.neighborhood!);
-    
+
     if (parts.isEmpty) return 'غير محدد';
     return parts.join(' - ');
   }
@@ -279,7 +242,7 @@ class ProjectCard extends StatelessWidget {
   String _buildPriceText() {
     // if (project.priceMin != null && project.priceMax != null) {
     //   return 'من ${_formatPrice(project.priceMin!)} إلى ${_formatPrice(project.priceMax!)} ريال';
-    // } else 
+    // } else
     if (project.priceMin != null) {
       return ' ${_formatPrice(project.priceMin!)} ريال';
     } else if (project.priceMax != null) {

@@ -49,7 +49,9 @@ class MainPage extends StatelessWidget {
                     SizedBox(
                       height: 16.h,
                     ),
-                    const DeveloperProjectsFeaturedCard(),
+                    DeveloperProjectsFeaturedCard(
+                      isWasset: isWasset,
+                    ),
                     SizedBox(
                       height: 16.h,
                     ),

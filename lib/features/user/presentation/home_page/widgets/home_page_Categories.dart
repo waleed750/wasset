@@ -3,7 +3,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:waseet/constants/constants.dart';
 import 'package:waseet/features/user/presentation/home_page/widgets/category_item.dart';
-import 'package:waseet/res/assets/assets.gen.dart';
 import 'package:waseet/router/screens.dart';
 
 class HomepageCategories extends StatelessWidget {
@@ -23,60 +22,58 @@ class HomepageCategories extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12).r,
             child: Row(
               children: [
-              if (isWasset == false)
-                CategoryItem(
-                  onTap: () {
-                    context.pushNamed(Screens.myBroker.name);
-                  },
-                  text: 'وسطائي',
-                  image: Constants.myBrokers,
-                ),
-              CategoryItem(
-                onTap: () {
-                  context.pushNamed(Screens.goldenBrokers.name);
-                },
-                text: 'وسطاء ذهبيين',
-                image: Constants.goldenBrokers,
-              ),
-              CategoryItem(
-                onTap: () {
-                  context.pushNamed(Screens.developerRealEstateEntry.name);
-                },
-                text: 'مشاريع المطورين',
-                image: Assets.icons.apartment.keyName,
-              ),
-              if (isWasset == true)
-                CategoryItem(
-                  text: 'مكتبي',
-                  image: Constants.myOffice,
-                  onTap: () {
-                    context.pushNamed(Screens.myPersonalOffice.name);
-                  },
-                ),
-              if (isWasset == false)
-                CategoryItem(
-                  text: 'الاعلانات',
-                  image: Constants.ad,
-                  onTap: () {
-                    context.pushNamed(Screens.advertisements.name);
-                  },
-                ),
-              if (isWasset == true)
-                CategoryItem(
-                  text: 'طلبات التواصل ',
-                  image: Constants.deliveryRequests,
-                  onTap: () {
-                    context.pushNamed(Screens.connectionRequests.name);
-                  },
-                ),
-              if (isWasset == true)
-                CategoryItem(
-                  onTap: () {
-                    context.pushNamed(Screens.tahalfat.name);
-                  },
-                  text: 'تحالف الوسطاء',
-                  image: Constants.myAlliances,
-                ),
+                if (!isWasset) ...[
+                  CategoryItem(
+                    onTap: () {
+                      context.pushNamed(Screens.myBroker.name);
+                    },
+                    text: 'وسطائي',
+                    image: Constants.myBrokers,
+                  ),
+                  CategoryItem(
+                    onTap: () {
+                      context.pushNamed(Screens.goldenBrokers.name);
+                    },
+                    text: 'وسطاء ذهبيين',
+                    image: Constants.goldenBrokers,
+                  ),
+                  CategoryItem(
+                    text: 'الاعلانات',
+                    image: Constants.ad,
+                    onTap: () {
+                      context.pushNamed(Screens.advertisements.name);
+                    },
+                  ),
+                ] else ...[
+                  CategoryItem(
+                    onTap: () {
+                      context.pushNamed(Screens.goldenBrokers.name);
+                    },
+                    text: 'وسطاء ذهبيين',
+                    image: Constants.goldenBrokers,
+                  ),
+                  CategoryItem(
+                    text: 'مكتبي',
+                    image: Constants.myOffice,
+                    onTap: () {
+                      context.pushNamed(Screens.myPersonalOffice.name);
+                    },
+                  ),
+                  CategoryItem(
+                    text: 'طلبات التواصل ',
+                    image: Constants.deliveryRequests,
+                    onTap: () {
+                      context.pushNamed(Screens.connectionRequests.name);
+                    },
+                  ),
+                  CategoryItem(
+                    onTap: () {
+                      context.pushNamed(Screens.tahalfat.name);
+                    },
+                    text: 'تحالف الوسطاء',
+                    image: Constants.myAlliances,
+                  ),
+                ],
               ],
             ),
           ),

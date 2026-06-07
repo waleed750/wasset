@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:waseet/app/bloc/app_bloc.dart';
 import 'package:waseet/common_widgets/wasset_app_bar.dart';
 import 'package:waseet/constants/constants.dart';
+import 'package:waseet/features/developer_real_estate/presentation/projects/view/developer_projects_page.dart';
 import 'package:waseet/router/screens.dart';
 
 class DeveloperRealEstateEntryPage extends StatelessWidget {
@@ -10,6 +13,11 @@ class DeveloperRealEstateEntryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isWasset = context.select((AppBloc bloc) => bloc.state.isWasset);
+    if (!isWasset) {
+      return const DeveloperProjectsPage();
+    }
+
     return Scaffold(
       appBar: const WassetAppBar(title: 'عقارات المطورين'),
       body: Padding(

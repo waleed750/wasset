@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:waseet/app/bloc/app_bloc.dart';
 import 'package:waseet/features/developer_real_estate/domain/entities/developer_opportunity_request_entity.dart';
 import 'package:waseet/res/res.dart';
 
 class DeveloperOpportunityCard extends StatelessWidget {
-
   const DeveloperOpportunityCard({
     super.key,
     required this.request,
@@ -14,6 +15,9 @@ class DeveloperOpportunityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final showBrokerCommission =
+        context.select((AppBloc bloc) => bloc.state.isWasset);
+
     return Card(
       elevation: 2,
       child: InkWell(
@@ -23,54 +27,28 @@ class DeveloperOpportunityCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header row with developer logo and type
+              // Header row with public request type only.
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Developer logo
-                  if (request.developer?.logo != null &&
-                      request.developer!.logo!.isNotEmpty)
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(6),
-                        image: DecorationImage(
-                          image: NetworkImage(request.developer!.logo!),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    )
-                  else
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(6),
-                        color: Colors.grey[300],
-                      ),
-                      child: Icon(
-                        Icons.business,
-                        color: Colors.grey[600],
-                        size: 24,
-                      ),
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(6),
+                      color: AppColors.primaryColor.withValues(alpha: 0.08),
                     ),
+                    child: const Icon(
+                      Icons.assignment_outlined,
+                      color: AppColors.primaryColor,
+                      size: 24,
+                    ),
+                  ),
                   const SizedBox(width: 12),
-                  // Company name and request type
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (request.developer?.companyName != null)
-                          Text(
-                            request.developer!.companyName!,
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelLarge
-                                ?.copyWith(fontWeight: FontWeight.bold),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
                         if (request.communicationRequestType != null)
                           Text(
                             request.communicationRequestType!,
@@ -88,7 +66,7 @@ class DeveloperOpportunityCard extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               // Details grid
-              _buildDetailsGrid(context),
+              _buildDetailsGrid(context, showBrokerCommission),
             ],
           ),
         ),
@@ -96,7 +74,7 @@ class DeveloperOpportunityCard extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailsGrid(BuildContext context) {
+  Widget _buildDetailsGrid(BuildContext context, bool showBrokerCommission) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -138,7 +116,7 @@ class DeveloperOpportunityCard extends StatelessWidget {
             ),
           ),
         // Commission percentage row
-        if (request.commissionPercentage != null)
+        if (showBrokerCommission && request.commissionPercentage != null)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Row(
@@ -152,33 +130,13 @@ class DeveloperOpportunityCard extends StatelessWidget {
               ],
             ),
           ),
-        // Communication methods row
-        if (request.communicationMethods != null &&
-            request.communicationMethods!.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(
-              children: [
-                const Icon(Icons.phone, size: 16, color: Colors.grey),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    'التواصل: ${request.communicationMethods!.join(', ')}',
-                    style: Theme.of(context).textTheme.bodySmall,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
         // Description preview
         if (request.description != null && request.description!.isNotEmpty)
           Text(
             request.description!,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.grey,
-            ),
+                  color: Colors.grey,
+                ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),

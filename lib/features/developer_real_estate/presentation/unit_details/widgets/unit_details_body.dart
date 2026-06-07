@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:waseet/app/bloc/app_bloc.dart';
 import 'package:waseet/common_widgets/images_banner.dart';
 import 'package:waseet/features/developer_real_estate/domain/entities/developer_unit_entity.dart';
 import 'package:waseet/features/developer_real_estate/presentation/unit_details/cubit/cubit.dart';
-import 'package:waseet/features/developer_real_estate/presentation/unit_details/widgets/developer_info_section.dart';
 import 'package:waseet/features/developer_real_estate/presentation/widgets/financing_selector.dart';
 import 'package:waseet/features/user/presentation/register/widgets/wasset_button.dart';
 import 'package:waseet/res/res.dart';
@@ -14,6 +14,9 @@ class UnitDetailsBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final showBrokerCommission =
+        context.select((AppBloc bloc) => bloc.state.isWasset);
+
     return BlocBuilder<UnitDetailsCubit, UnitDetailsState>(
       builder: (context, state) {
         if (state.status == UnitDetailsStatus.loading) {
@@ -55,6 +58,12 @@ class UnitDetailsBody extends StatelessWidget {
           return const Center(child: Text('لا توجد بيانات'));
         }
 
+        final unitImages = _galleryImages(unit.cover, unit.images);
+        final hasProjectInfo = unit.projectName != null ||
+            unit.projectCity != null ||
+            unit.projectNeighborhood != null ||
+            (showBrokerCommission && unit.projectCommission != null);
+
         return SingleChildScrollView(
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
@@ -71,9 +80,9 @@ class UnitDetailsBody extends StatelessWidget {
                     ),
                   ),
                   clipBehavior: Clip.hardEdge,
-                  child: unit.images != null && unit.images!.isNotEmpty
+                  child: unitImages.isNotEmpty
                       ? ImagesBanner(
-                          images: unit.images!,
+                          images: unitImages,
                         )
                       : ColoredBox(
                           color: Colors.grey.shade100,
@@ -229,7 +238,8 @@ class UnitDetailsBody extends StatelessWidget {
                 SizedBox(height: 16.h),
 
                 // Description
-                if (unit.description != null && unit.description!.isNotEmpty) ...[
+                if (unit.description != null &&
+                    unit.description!.isNotEmpty) ...[
                   const _SectionTitle(title: 'وصف الوحدة'),
                   SizedBox(height: 8.h),
                   Container(
@@ -254,7 +264,7 @@ class UnitDetailsBody extends StatelessWidget {
                 ],
 
                 // Related Project Info
-                if (unit.projectName != null || unit.projectDeveloperName != null) ...[
+                if (hasProjectInfo) ...[
                   const _SectionTitle(title: 'معلومات المشروع'),
                   SizedBox(height: 8.h),
                   Container(
@@ -295,30 +305,6 @@ class UnitDetailsBody extends StatelessWidget {
                           SizedBox(height: 8.h),
                         ],
 
-                        // Developer Name
-                        if (unit.projectDeveloperName != null) ...[
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.business,
-                                color: AppColors.primaryColor,
-                                size: 18.sp,
-                              ),
-                              SizedBox(width: 8.w),
-                              Expanded(
-                                child: Text(
-                                  unit.projectDeveloperName!,
-                                  style: TextStyle(
-                                    fontSize: 14.sp,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 8.h),
-                        ],
-
                         // Location
                         if (unit.projectCity != null ||
                             unit.projectNeighborhood != null) ...[
@@ -345,7 +331,8 @@ class UnitDetailsBody extends StatelessWidget {
                         ],
 
                         // Commission
-                        if (unit.projectCommission != null)
+                        if (showBrokerCommission &&
+                            unit.projectCommission != null)
                           Row(
                             children: [
                               Icon(
@@ -385,34 +372,14 @@ class UnitDetailsBody extends StatelessWidget {
                     onTap: () async {
                       final url = Uri.parse(unit.projectLocationUrl!);
                       if (await canLaunchUrl(url)) {
-                        await launchUrl(url,
-                            mode: LaunchMode.externalApplication,);
+                        await launchUrl(
+                          url,
+                          mode: LaunchMode.externalApplication,
+                        );
                       }
                     },
                   ),
                   SizedBox(height: 12.h),
-                ],
-
-                // Contact CTA
-                if (unit.projectContactPhone != null &&
-                    unit.projectContactPhone!.isNotEmpty) ...[
-                  WassetButton(
-                    text: 'التواصل للاستفسار',
-                    onTap: () async {
-                      final phone = unit.projectContactPhone!;
-                      final url = Uri.parse('tel:$phone');
-                      if (await canLaunchUrl(url)) {
-                        await launchUrl(url);
-                      }
-                    },
-                  ),
-                  SizedBox(height: 12.h),
-                ],
-
-                // Developer Info Section
-                if (unit.developerInfo != null) ...[
-                  DeveloperInfoSection(developer: unit.developerInfo!),
-                  SizedBox(height: 20.h),
                 ],
 
                 SizedBox(height: 20.h),
@@ -422,6 +389,17 @@ class UnitDetailsBody extends StatelessWidget {
         );
       },
     );
+  }
+
+  List<String> _galleryImages(String? cover, List<String>? images) {
+    final values = <String>[];
+    for (final image in [cover, ...?images]) {
+      final value = image?.trim();
+      if (value != null && value.isNotEmpty && !values.contains(value)) {
+        values.add(value);
+      }
+    }
+    return values;
   }
 
   String _buildProjectLocation(DeveloperUnitEntity unit) {

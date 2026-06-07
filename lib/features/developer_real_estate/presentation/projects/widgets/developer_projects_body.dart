@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:waseet/app/bloc/app_bloc.dart';
 import 'package:waseet/common_widgets/error.dart';
 import 'package:waseet/common_widgets/no_items.dart';
 import 'package:waseet/common_widgets/skeleton.dart';
@@ -40,6 +41,9 @@ class _DeveloperProjectsBodyState extends State<DeveloperProjectsBody> {
 
   @override
   Widget build(BuildContext context) {
+    final showBrokerCommission =
+        context.select((AppBloc bloc) => bloc.state.isWasset);
+
     return BlocBuilder<DeveloperProjectsCubit, DeveloperProjectsState>(
       builder: (context, state) {
         return Column(
@@ -55,7 +59,8 @@ class _DeveloperProjectsBodyState extends State<DeveloperProjectsBody> {
                     padding: EdgeInsets.symmetric(horizontal: 12.w),
                     child: Row(
                       children: state.categories.map((category) {
-                        final isSelected = state.selectedCategory == category.key;
+                        final isSelected =
+                            state.selectedCategory == category.key;
                         return Padding(
                           padding: EdgeInsets.only(left: 8.w),
                           child: GestureDetector(
@@ -97,7 +102,9 @@ class _DeveloperProjectsBodyState extends State<DeveloperProjectsBody> {
                                       ? '${category.label} (${category.projectCount})'
                                       : category.label,
                                   style: TextStyle(
-                                    color: isSelected ? Colors.white : Colors.black87,
+                                    color: isSelected
+                                        ? Colors.white
+                                        : Colors.black87,
                                     fontSize: 13.sp,
                                     fontWeight: isSelected
                                         ? FontWeight.w700
@@ -116,7 +123,7 @@ class _DeveloperProjectsBodyState extends State<DeveloperProjectsBody> {
 
             // City filter section (below categories)
             const CityFilteringSection(),
-            
+
             // Loading state
             if (state.status == DeveloperProjectsStatus.loading)
               Expanded(
@@ -163,8 +170,7 @@ class _DeveloperProjectsBodyState extends State<DeveloperProjectsBody> {
                 child: ListView.builder(
                   controller: _scrollController,
                   padding: EdgeInsets.all(10.r),
-                  itemCount:
-                      state.projects.length + (state.hasMore ? 1 : 0),
+                  itemCount: state.projects.length + (state.hasMore ? 1 : 0),
                   itemBuilder: (context, index) {
                     if (index >= state.projects.length) {
                       return state.status == DeveloperProjectsStatus.loadingMore
@@ -181,6 +187,7 @@ class _DeveloperProjectsBodyState extends State<DeveloperProjectsBody> {
                       padding: EdgeInsets.only(bottom: 10.h),
                       child: ProjectCard(
                         project: state.projects[index],
+                        showBrokerCommission: showBrokerCommission,
                       ),
                     );
                   },

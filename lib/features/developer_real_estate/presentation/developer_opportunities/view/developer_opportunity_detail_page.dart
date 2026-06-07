@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:waseet/app/bloc/app_bloc.dart';
 import 'package:waseet/features/developer_real_estate/domain/entities/developer_opportunity_request_entity.dart';
 import 'package:waseet/res/res.dart';
 
 class DeveloperOpportunityDetailPage extends StatelessWidget {
-
   const DeveloperOpportunityDetailPage({
     super.key,
     required this.request,
@@ -12,6 +14,9 @@ class DeveloperOpportunityDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final showBrokerCommission =
+        context.select((AppBloc bloc) => bloc.state.isWasset);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('تفاصيل الطلب'),
@@ -24,12 +29,8 @@ class DeveloperOpportunityDetailPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Developer info card
-              if (request.developer != null)
-                _buildDeveloperCard(context, request.developer!),
-              const SizedBox(height: 24),
               // Details section
-              _buildDetailSection(context),
+              _buildDetailSection(context, showBrokerCommission),
             ],
           ),
         ),
@@ -37,93 +38,36 @@ class DeveloperOpportunityDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildDeveloperCard(
+  Widget _buildDetailSection(
     BuildContext context,
-    DeveloperInfoEntity developer,
+    bool showBrokerCommission,
   ) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Logo
-            if (developer.logo != null && developer.logo!.isNotEmpty)
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  image: DecorationImage(
-                    image: NetworkImage(developer.logo!),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              )
-            else
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  color: Colors.grey[300],
-                ),
-                child: const Icon(
-                  Icons.business,
-                  color: Colors.grey,
-                ),
-              ),
-            const SizedBox(width: 12),
-            // Developer info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (developer.companyName != null)
-                    Text(
-                      developer.companyName!,
-                      style: Theme.of(context).textTheme.titleMedium,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  const SizedBox(height: 4),
-                  if (developer.responsibleName != null)
-                    Text(
-                      'المسؤول: ${developer.responsibleName}',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  const SizedBox(height: 4),
-                  if (developer.responsibleMobile != null)
-                    Text(
-                      developer.responsibleMobile!,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.grey,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDetailSection(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'تفاصيل الطلب',
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+                fontWeight: FontWeight.bold,
+              ),
         ),
         const SizedBox(height: 12),
         _buildDetailRow('نوع الفرصة', request.opportunityType),
         _buildDetailRow('نوع طلب التواصل', request.communicationRequestType),
         _buildDetailRow('الموقع', request.city),
         _buildDetailRow('الحي', request.neighborhood),
+        if (_hasLocationUrl) ...[
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: () => _openLocation(context),
+            icon: const Icon(Icons.map_outlined),
+            label: const Text('الذهاب للموقع'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.primaryColor,
+              side: const BorderSide(color: AppColors.primaryColor),
+            ),
+          ),
+        ],
         if (request.description != null) ...[
           const SizedBox(height: 12),
           Text(
@@ -136,7 +80,7 @@ class DeveloperOpportunityDetailPage extends StatelessWidget {
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ],
-        if (request.commissionPercentage != null) ...[
+        if (showBrokerCommission && request.commissionPercentage != null) ...[
           const SizedBox(height: 12),
           _buildDetailRow(
             'نسبة العمولة',
@@ -164,6 +108,24 @@ class DeveloperOpportunityDetailPage extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+
+  bool get _hasLocationUrl => request.locationUrl?.trim().isNotEmpty ?? false;
+
+  Future<void> _openLocation(BuildContext context) async {
+    final locationUrl = request.locationUrl?.trim();
+    if (locationUrl == null || locationUrl.isEmpty) return;
+
+    final uri = Uri.tryParse(locationUrl);
+    if (uri != null && await canLaunchUrl(uri) && context.mounted) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+      return;
+    }
+
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('تعذر فتح الموقع')),
     );
   }
 

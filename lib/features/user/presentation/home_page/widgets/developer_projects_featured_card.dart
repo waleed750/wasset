@@ -6,13 +6,22 @@ import 'package:waseet/res/res.dart';
 import 'package:waseet/router/screens.dart';
 
 class DeveloperProjectsFeaturedCard extends StatelessWidget {
-  const DeveloperProjectsFeaturedCard({super.key});
+  const DeveloperProjectsFeaturedCard({
+    super.key,
+    required this.isWasset,
+  });
+
+  final bool isWasset;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        context.pushNamed(Screens.developerRealEstateEntry.name);
+        context.pushNamed(
+          isWasset
+              ? Screens.developerRealEstateEntry.name
+              : Screens.developerProjects.name,
+        );
       },
       child: Container(
         width: double.infinity,
