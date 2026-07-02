@@ -1,13 +1,14 @@
 import 'package:waseet/features/developer_real_estate/data/models/developer_category_response.dart';
 import 'package:waseet/features/developer_real_estate/data/models/developer_city_response.dart';
-import 'package:waseet/features/developer_real_estate/data/models/developer_project_response.dart';
 import 'package:waseet/features/developer_real_estate/data/models/developer_project_details_response.dart';
+import 'package:waseet/features/developer_real_estate/data/models/developer_project_response.dart';
 import 'package:waseet/features/developer_real_estate/data/models/developer_unit_response.dart';
 import 'package:waseet/features/developer_real_estate/domain/entities/developer_category_entity.dart';
 import 'package:waseet/features/developer_real_estate/domain/entities/developer_city_entity.dart';
 import 'package:waseet/features/developer_real_estate/domain/entities/developer_project_entity.dart';
 import 'package:waseet/features/developer_real_estate/domain/entities/developer_unit_entity.dart';
 import 'package:waseet/features/developer_real_estate/domain/entities/paginated_result.dart';
+import 'package:waseet/features/developer_real_estate/domain/entities/request/developer_unit_inquiry_request.dart';
 import 'package:waseet/res/api_service.dart';
 import 'package:waseet/res/resource.dart';
 
@@ -75,7 +76,7 @@ class DeveloperRealEstateDatasource {
         '/developer-projects',
         queryParameters: queryParams,
       );
-      
+
       final projectResponse = DeveloperProjectResponse.fromMap(response!);
       if (projectResponse.data != null) {
         // Extract pagination metadata from BasePaginationResponse
@@ -104,7 +105,8 @@ class DeveloperRealEstateDatasource {
         '/developer-projects/$id',
       );
       // Use dedicated single-object response, NOT paginated response
-      final projectResponse = DeveloperProjectDetailsResponse.fromMap(response!);
+      final projectResponse =
+          DeveloperProjectDetailsResponse.fromMap(response!);
       if (projectResponse.data != null) {
         return Resource.success(projectResponse.data!.toEntity());
       }
@@ -126,6 +128,40 @@ class DeveloperRealEstateDatasource {
       return Resource.error(unitResponse.message ?? 'error');
     } catch (e) {
       return Resource.error(e.toString());
+    }
+  }
+
+  Future<Resource<String>> createPotentialCustomer(
+    DeveloperUnitInquiryRequest request,
+  ) async {
+    try {
+      final response = await _apiService.post<Map<String, dynamic>>(
+        '/potential-customers',
+        data: request.toJson(),
+      );
+
+      if (response == null) {
+        return Resource.error('تعذر إرسال بيانات العميل');
+      }
+
+      final errors = response['errors'];
+      if (errors is Map && errors.isNotEmpty) {
+        return Resource.error(
+          response['message']?.toString() ?? 'تحقق من بيانات العميل',
+          null,
+          Map<String, dynamic>.from(errors),
+        );
+      }
+
+      if (response['error'] != null) {
+        return Resource.error(response['error'].toString());
+      }
+
+      return Resource.success(
+        response['message']?.toString() ?? 'تم إرسال بيانات العميل بنجاح',
+      );
+    } catch (e) {
+      return Resource.error(e.toString().replaceFirst('Exception: ', ''));
     }
   }
 }

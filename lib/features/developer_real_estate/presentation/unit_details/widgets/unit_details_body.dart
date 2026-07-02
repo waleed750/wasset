@@ -5,9 +5,12 @@ import 'package:waseet/app/bloc/app_bloc.dart';
 import 'package:waseet/common_widgets/images_banner.dart';
 import 'package:waseet/features/developer_real_estate/domain/entities/developer_unit_entity.dart';
 import 'package:waseet/features/developer_real_estate/presentation/unit_details/cubit/cubit.dart';
+import 'package:waseet/features/developer_real_estate/presentation/unit_details/widgets/client_info_section.dart';
 import 'package:waseet/features/developer_real_estate/presentation/widgets/financing_selector.dart';
 import 'package:waseet/features/user/presentation/register/widgets/wasset_button.dart';
+import 'package:waseet/res/helper_method.dart';
 import 'package:waseet/res/res.dart';
+import 'package:waseet/res/resource.dart';
 
 class UnitDetailsBody extends StatelessWidget {
   const UnitDetailsBody({super.key});
@@ -16,6 +19,10 @@ class UnitDetailsBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final showBrokerCommission =
         context.select((AppBloc bloc) => bloc.state.isWasset);
+    final isBroker = context.select(
+      (AppBloc bloc) =>
+          bloc.state.isWasset && (bloc.state.user?.isBroker ?? false),
+    );
 
     return BlocBuilder<UnitDetailsCubit, UnitDetailsState>(
       builder: (context, state) {
@@ -76,7 +83,7 @@ class UnitDetailsBody extends StatelessWidget {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10).r,
                     border: Border.all(
-                      color: Colors.grey.withOpacity(0.5),
+                      color: Colors.grey.withValues(alpha: 0.5),
                     ),
                   ),
                   clipBehavior: Clip.hardEdge,
@@ -173,7 +180,7 @@ class UnitDetailsBody extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       color: _getStatusColor(unit.availabilityStatus!)
-                          .withOpacity(0.1),
+                          .withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8).r,
                       border: Border.all(
                         color: _getStatusColor(unit.availabilityStatus!),
@@ -248,7 +255,7 @@ class UnitDetailsBody extends StatelessWidget {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10).r,
                       border: Border.all(
-                        color: Colors.grey.withOpacity(0.5),
+                        color: Colors.grey.withValues(alpha: 0.5),
                       ),
                     ),
                     child: Text(
@@ -272,9 +279,9 @@ class UnitDetailsBody extends StatelessWidget {
                     padding: EdgeInsets.all(12.r),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10).r,
-                      color: AppColors.primaryColor.withOpacity(0.05),
+                      color: AppColors.primaryColor.withValues(alpha: 0.05),
                       border: Border.all(
-                        color: Colors.grey.withOpacity(0.3),
+                        color: Colors.grey.withValues(alpha: 0.3),
                       ),
                     ),
                     child: Column(
@@ -382,6 +389,49 @@ class UnitDetailsBody extends StatelessWidget {
                   SizedBox(height: 12.h),
                 ],
 
+                if (isBroker) ...[
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor,
+                        padding: EdgeInsets.symmetric(vertical: 12.h),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8).r,
+                        ),
+                      ),
+                      onPressed: () => _showInquiryForm(context),
+                      icon: const Icon(
+                        Icons.contact_phone_outlined,
+                        color: Colors.white,
+                      ),
+                      label: Text(
+                        'إضافة عميل محتمل',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 12.h),
+                ],
+
+                if (unit.projectContactPhone != null &&
+                    unit.projectContactPhone!.isNotEmpty) ...[
+                  WassetButton(
+                    text: 'التواصل للاستفسار',
+                    backgroundColor: Colors.white,
+                    textColor: AppColors.primaryColor,
+                    onTap: () => _launchPhone(
+                      context,
+                      unit.projectContactPhone!,
+                    ),
+                  ),
+                  SizedBox(height: 12.h),
+                ],
+
                 SizedBox(height: 20.h),
               ],
             ),
@@ -400,6 +450,53 @@ class UnitDetailsBody extends StatelessWidget {
       }
     }
     return values;
+  }
+
+  Future<void> _showInquiryForm(BuildContext context) async {
+    final user = context.read<AppBloc>().state.user;
+    if (user == null || !user.isBroker) {
+      HelperMethod.showSnackBar(context, 'هذه الخدمة متاحة للوسطاء فقط');
+      return;
+    }
+
+    final cubit = context.read<UnitDetailsCubit>();
+    final submitted = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18.r)),
+      ),
+      builder: (_) => ClientInfoSection(
+        onSubmit: (customerName, customerPhone) async {
+          final result = await cubit.submitPotentialCustomer(
+            customerName: customerName,
+            customerPhone: customerPhone,
+            brokerId: user.id,
+            brokerName: user.name,
+          );
+
+          if (result is ResourceSuccess<String>) return null;
+          return result.message ?? 'تعذر إرسال بيانات العميل';
+        },
+      ),
+    );
+
+    if ((submitted ?? false) && context.mounted) {
+      HelperMethod.showSnackBar(context, 'تم إرسال بيانات العميل بنجاح');
+    }
+  }
+
+  Future<void> _launchPhone(BuildContext context, String phone) async {
+    final url = Uri(scheme: 'tel', path: phone);
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url);
+      return;
+    }
+
+    if (context.mounted) {
+      HelperMethod.showSnackBar(context, 'تعذر فتح تطبيق الاتصال');
+    }
   }
 
   String _buildProjectLocation(DeveloperUnitEntity unit) {
@@ -532,7 +629,7 @@ class _DetailRow extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8).r,
-        color: Colors.grey.withOpacity(0.1),
+        color: Colors.grey.withValues(alpha: 0.1),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
