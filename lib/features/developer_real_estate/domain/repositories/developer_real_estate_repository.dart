@@ -22,6 +22,7 @@ abstract class DeveloperRealEstateRepository {
   Future<Resource<DeveloperUnitEntity?>> getUnitById(int id);
 
   Future<Resource<String>> createPotentialCustomer(
+    int unitId,
     DeveloperUnitInquiryRequest request,
   );
 }

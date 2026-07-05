@@ -34,7 +34,7 @@ class WassetUser {
   final WassetProfileEntity? profile;
   final String? gender;
 
-  bool get isBroker => type == UserType.wasset;
+  bool get isBroker => type == UserType.wasset || type == UserType.broker;
 
   static WassetUser empty() {
     return const WassetUser(
@@ -46,7 +46,7 @@ class WassetUser {
   }
 }
 
-enum UserType { customer, wasset }
+enum UserType { customer, wasset, broker }
 
 extension UserTypeX on String {
   UserType? toUserType() {
@@ -55,6 +55,8 @@ extension UserTypeX on String {
         return UserType.customer;
       case 'wasset':
         return UserType.wasset;
+      case 'broker':
+        return UserType.broker;
       default:
         return UserType.customer;
     }

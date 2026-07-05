@@ -23,7 +23,6 @@ class UnitDetailsPage extends StatelessWidget {
       create: (context) => UnitDetailsCubit(
         repository: context.read<DeveloperRealEstateRepository>(),
         unitId: unitId!,
-        projectId: projectId,
       ),
       child: const Scaffold(
         appBar: WassetAppBar(title: 'تفاصيل الوحدة'),

@@ -9,21 +9,21 @@ import 'package:waseet/res/resource.dart';
 
 part 'unit_details_state.dart';
 
+const _defaultPotentialCustomerNotes = '';
+const _defaultPotentialCustomerEffortLevel = 'high';
+
 class UnitDetailsCubit extends Cubit<UnitDetailsState> {
   UnitDetailsCubit({
     required DeveloperRealEstateRepository repository,
     required int unitId,
-    int? projectId,
   })  : _repository = repository,
         _unitId = unitId,
-        _projectId = projectId,
         super(const UnitDetailsState()) {
     init();
   }
 
   final DeveloperRealEstateRepository _repository;
   final int _unitId;
-  final int? _projectId;
 
   Future<void> init() async {
     try {
@@ -70,22 +70,21 @@ class UnitDetailsCubit extends Cubit<UnitDetailsState> {
   Future<Resource<String>> submitPotentialCustomer({
     required String customerName,
     required String customerPhone,
-    required int brokerId,
-    required String brokerName,
+    String notes = _defaultPotentialCustomerNotes,
+    String effortLevel = _defaultPotentialCustomerEffortLevel,
   }) async {
-    final projectId = state.unit?.projectId ?? _projectId;
-    if (projectId == null || projectId <= 0) {
-      return Resource.error('تعذر تحديد المشروع المرتبط بالوحدة');
+    final unitId = state.unit?.id ?? _unitId;
+    if (unitId <= 0) {
+      return Resource.error('تعذر تحديد الوحدة');
     }
 
     return _repository.createPotentialCustomer(
+      unitId,
       DeveloperUnitInquiryRequest(
-        projectId: projectId,
-        unitId: _unitId,
         customerName: customerName,
         customerPhone: customerPhone,
-        brokerId: brokerId,
-        brokerName: brokerName,
+        notes: notes,
+        effortLevel: effortLevel,
       ),
     );
   }

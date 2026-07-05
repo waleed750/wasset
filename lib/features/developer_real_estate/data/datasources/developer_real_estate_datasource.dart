@@ -132,11 +132,12 @@ class DeveloperRealEstateDatasource {
   }
 
   Future<Resource<String>> createPotentialCustomer(
+    int unitId,
     DeveloperUnitInquiryRequest request,
   ) async {
     try {
       final response = await _apiService.post<Map<String, dynamic>>(
-        '/potential-customers',
+        '/developers/units/$unitId/potential-customers',
         data: request.toJson(),
       );
 

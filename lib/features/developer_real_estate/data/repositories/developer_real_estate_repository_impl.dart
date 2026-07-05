@@ -50,8 +50,9 @@ class DeveloperRealEstateRepositoryImpl extends DeveloperRealEstateRepository {
 
   @override
   Future<Resource<String>> createPotentialCustomer(
+    int unitId,
     DeveloperUnitInquiryRequest request,
   ) {
-    return _datasource.createPotentialCustomer(request);
+    return _datasource.createPotentialCustomer(unitId, request);
   }
 }

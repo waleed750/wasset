@@ -20,8 +20,7 @@ class UnitDetailsBody extends StatelessWidget {
     final showBrokerCommission =
         context.select((AppBloc bloc) => bloc.state.isWasset);
     final isBroker = context.select(
-      (AppBloc bloc) =>
-          bloc.state.isWasset && (bloc.state.user?.isBroker ?? false),
+      (AppBloc bloc) => bloc.state.user?.isBroker ?? false,
     );
 
     return BlocBuilder<UnitDetailsCubit, UnitDetailsState>(
@@ -472,8 +471,6 @@ class UnitDetailsBody extends StatelessWidget {
           final result = await cubit.submitPotentialCustomer(
             customerName: customerName,
             customerPhone: customerPhone,
-            brokerId: user.id,
-            brokerName: user.name,
           );
 
           if (result is ResourceSuccess<String>) return null;
