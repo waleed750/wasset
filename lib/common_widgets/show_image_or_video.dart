@@ -23,7 +23,7 @@ class ShowImageOrVideo extends StatefulWidget {
 }
 
 class _ShowImageOrVideoState extends State<ShowImageOrVideo> {
-  late VideoPlayerController _controller;
+  VideoPlayerController? _controller;
 
   @override
   void initState() {
@@ -32,15 +32,21 @@ class _ShowImageOrVideoState extends State<ShowImageOrVideo> {
       if (widget.path.contains('http')) {
         _controller = VideoPlayerController.networkUrl(Uri.parse(widget.path))
           ..initialize().then((_) {
-            setState(() {});
+            if (mounted) setState(() {});
           });
       } else {
         _controller = VideoPlayerController.file(File(widget.path))
           ..initialize().then((_) {
-            setState(() {});
+            if (mounted) setState(() {});
           });
       }
     }
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
   }
 
   @override
@@ -49,18 +55,22 @@ class _ShowImageOrVideoState extends State<ShowImageOrVideo> {
     final isNetwork = widget.path.contains('http');
     if (isImage) {
       if (isNetwork) {
-        return Image.network(
-          widget.path,
-          fit: BoxFit.cover,
+        return _ZoomableImage(
           height: widget.height,
           width: widget.width,
-          errorBuilder: (_, __, ___) => ColoredBox(
-            color: Colors.grey.shade200,
-            child: const Icon(Icons.broken_image),
+          child: Image.network(
+            widget.path,
+            fit: BoxFit.contain,
+            height: widget.height,
+            width: widget.width,
+            errorBuilder: (_, __, ___) => ColoredBox(
+              color: Colors.grey.shade200,
+              child: const Icon(Icons.broken_image),
+            ),
           ),
         );
       } else {
-        // Support file:// URIs as well as plain paths
+        // Support file:// URIs as well as plain paths.
         var filePath = widget.path;
         if (filePath.startsWith('file://')) {
           try {
@@ -68,28 +78,58 @@ class _ShowImageOrVideoState extends State<ShowImageOrVideo> {
           } catch (_) {}
         }
 
-        return Image.file(
-          File(filePath),
-          fit: BoxFit.cover,
+        return _ZoomableImage(
           height: widget.height,
           width: widget.width,
-          errorBuilder: (_, __, ___) => ColoredBox(
-            color: Colors.grey.shade200,
-            child: const Icon(Icons.broken_image),
+          child: Image.file(
+            File(filePath),
+            fit: BoxFit.cover,
+            height: widget.height,
+            width: widget.width,
+            errorBuilder: (_, __, ___) => ColoredBox(
+              color: Colors.grey.shade200,
+              child: const Icon(Icons.broken_image),
+            ),
           ),
         );
       }
     } else {
-      return _controller.value.isInitialized
+      final controller = _controller;
+      return controller != null && controller.value.isInitialized
           ? AspectRatio(
-              aspectRatio: _controller.value.aspectRatio,
+              aspectRatio: controller.value.aspectRatio,
               child: VideoPlayer(
-                _controller,
+                controller,
               ),
             )
           : const Center(
               child: CircularProgressIndicator(),
             );
     }
+  }
+}
+
+class _ZoomableImage extends StatelessWidget {
+  const _ZoomableImage({
+    required this.child,
+    this.height,
+    this.width,
+  });
+
+  final Widget child;
+  final double? height;
+  final double? width;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: height,
+      width: width,
+      child: InteractiveViewer(
+        minScale: 1,
+        maxScale: 4,
+        child: Center(child: child),
+      ),
+    );
   }
 }
