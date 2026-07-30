@@ -128,3 +128,4 @@ app.*.map.json
 
 private_keys/
 deploy.yaml
+*.hprof
